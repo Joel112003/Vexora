@@ -1,4 +1,4 @@
-import { apiResponse } from "../utilis/apiResponse";
+import { apiResponse } from "../utilis/apiResponse.js";
 
 export const validate = (schema) => (req, res, next) => {
   const result = schema.safeParse(req.body);

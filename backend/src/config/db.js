@@ -3,13 +3,14 @@ import mongoose from "mongoose";
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGO_URI, {
-      dbName: "Vexora_DB",
+      dbName: "Vexora",
     });
     mongoose.set("strictQuery", true);
+    console.log("MongoDB connected Successfully!");
   } catch (error) {
-    console.error(`MongoDB connection failed" : ${error.message}`);
+    console.error(`MongoDB connection failed : ${error.message}`);
     process.exit(1);
   }
 };
 
-export default ConnectDB;
+export default connectDB;

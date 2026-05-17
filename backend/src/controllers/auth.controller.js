@@ -26,114 +26,153 @@ export const register = async (req, res) => {
     }
 
     const user = await User.create({
-        username,
-        email,
-        passwordHash = password,
-        ipAddress = req.ip,
+      username,
+      email,
+      passwordHash: password,
+      ipAddress: req.ip,
     });
 
     const accessToken = generateAccessToken(user._id);
-    const refreshToken =  generateRefreshToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
 
     await Session.create({
-        userId = user._id,
-        refreshToken,
-        ipAddress= req.ip,
-        userAgent: req.headers['user-agent'],
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      userId: user._id,
+      refreshToken,
+      ipAddress: req.ip,
+      userAgent: req.headers["user-agent"],
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     });
 
-    res.cookie('refreshToken' , refreshToken, COOKIE_OPTIONS);
+    res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
 
-    res.status(201).json(apiResponse(true , 'Account created successfully' , {
+    res.status(201).json(
+      apiResponse(true, "Account created successfully", {
         accessToken,
-        user:{
-            id : user._id,
-            username: user.username,
-            email:user.email,
-            balance:user.balance,
-            role:user.role,
-        }
-    }));
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          balance: user.balance,
+          role: user.role,
+        },
+      }),
+    );
   } catch (error) {
     res.status(500).json(apiResponse(false, error.message));
   }
 };
 
-export const login = async(req,res) =>{
-    try{
-        const {email , password } = req.body;
-        const user = await User.findOne({email}).select('+passwordHash');
+export const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findOne({ email }).select("+passwordHash");
 
-        if(!user || !(await user.comparePassword(password))){
-            return res.status(401).json(apiResponse(false , 'Invalid email or password'));
-        }
-        const accessToken = generateAccessToken(user._id);
-        const refreshToken = generateRefreshToken(user._id);
+    if (!user || !(await user.comparePassword(password))) {
+      return res
+        .status(401)
+        .json(apiResponse(false, "Invalid email or password"));
+    }
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
 
-        // de-activate all the session for this user and create a new one
-        await Session.updateMany({ userId: user._id } , { isActive: false });
+    // de-activate all the session for this user and create a new one
+    await Session.updateMany({ userId: user._id }, { isActive: false });
 
-        await Session.create({
-            userId = user._id,
-            refreshToken,
-             ipAddress= req.ip,
-            userAgent: req.headers['user-agent'],
-             expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-        });
-        res.cookie('refreshToken' , refreshToken , COOKIE_OPTIONS);
-        res.json(apiResponse(true, 'Logged in successfully', {
-                 accessToken,
-                user: {
-                    id: user._id,
-                    username: user.username,
-                    email: user.email,
-                    balance: user.balance,
-                    role: user.role,
+    await Session.create({
+      userId: user._id,
+      refreshToken,
+      ipAddress: req.ip,
+      userAgent: req.headers["user-agent"],
+      expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    });
+    res.cookie("refreshToken", refreshToken, COOKIE_OPTIONS);
+    res.json(
+      apiResponse(true, "Logged in successfully", {
+        accessToken,
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          balance: user.balance,
+          role: user.role,
+        },
+      }),
+    );
+  } catch (error) {
+    return res.status(410).json(apiResponse(false, error.message));
+  }
+};
+
+export const refreshToken = async (req, res) => {
+  try {
+    const token = req.cookie.refreshToken;
+    if (!token) {
+      return res
+        .status(401)
+        .json(apiResponse(false, "No refresh Token is available"));
+    }
+
+    const decoded = verifyRefreshToken(token);
+    const session = await Session.create({
+      userId: decoded.id,
+      isActive: true,
+    }).select("+refreshToken");
+
+    if (!session) {
+      return res
+        .status(401)
+        .json(apiResponse(false, "Session expired , Please log in again"));
+    }
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json(apiResponse(false, "User not found!"));
+    }
+
+    const newAccessToken = generateAccessToken(user._id);
+    const newRefreshToken = generateRefreshToken(user._id);
+
+    // now old refresh token is been replaced
+    session.refreshToken = newRefreshToken;
+    session.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    await session.save();
+
+    res.cookie("refreshToken", newRefreshToken, COOKIE_OPTIONS);
+
+    res.json(
+      apiResponse(true, "Token refreshed", { accessToken: newAccessToken }),
+    );
+  } catch (error) {
+    return res
+      .status(401)
+      .json(apiResponse(false, "Invalid or expired refresh token"));
+  }
+};
+
+export const logout = async (req, res) => {
+  try {
+    const token = req.cookie.refreshToken;
+
+    if (token) {
+      await Session.updateMany({ userId: user._id }, { isActive: false });
+    }
+    res.cookie("refreshToken", COOKIE_OPTIONS);
+    res.json(true, "Logged out successfully!!");
+  } catch (error) {
+    return res.status(401).json(apiResponse(false, error.message));
+  }
+};
+
+export const getMe = async (req, res) => {
+  res.json(
+    apiResponse(true, "User Fetched", {
+      user: {
+        id: req.user._id,
+        username: req.user.username,
+        email: req.user.email,
+        balance: req.user.balance,
+        role: req.user.role,
+        isGuest: req.user.isGuest,
       },
-    }));
-
-    }catch(error){
-        return res.status(410).json(apiResponse(false , error.message))
-    }
-}
-
-export const refreshToken = async(req,res) => {
-    try{
-        const token = req.cookie.refreshToken;
-        if(!token){
-            return res.status(401).json(apiResponse(false , 'No refresh Token is available'));
-        }
-
-        const decoded = verifyRefreshToken(token);
-        const session = await Session.create({
-            userId : decoded.id,
-            isActive :true,
-        }).select('+refreshToken');
-
-        if(!session){
-            return res.status(401).json(apiResponse(false , 'Session expired , Please log in again'));
-        }
-        const user = await User.findById(decoded.id);
-        if(!user){
-            return res.status(401).json(apiResponse(false , 'User not found!'))
-        }
-
-        const newAccessToken = generateAccessToken(user._id);
-        const newRefreshToken = generateRefreshToken(user._id);
-
-        // now old refresh token is been replaced
-        session.refreshToken = newRefreshToken;
-        session.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-        await session.save();
-
-        res.cookie('refreshToken' , newRefreshToken ,COOKIE_OPTIONS );
-
-        res.json(apiResponse(true , 'Token refreshed' , {accessToken : newAccessToken}))
-
-
-    }catch(error){
-        return res.status(401).json(apiResponse(false , 'Invalid or expired refresh token'))
-    }
-}
-
+    }),
+  );
+};
