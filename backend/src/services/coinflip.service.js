@@ -1,6 +1,8 @@
 import { parse } from "dotenv";
 
 export const coinFlip = ({ choice, betAmount }) => {
+
+  //50-50 random result
   const result = Math.random() < 0.5 ? "heads" : "tails";
   const win = result === choice;
 
