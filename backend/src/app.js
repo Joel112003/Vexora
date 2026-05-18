@@ -46,6 +46,7 @@ app.get("/health", (req, res) => {
 
 app.use("/api/v1/auth", authRoutes);
 app.use('/api/v2/games', gameRoutes);
+app.use('/api/v3/user',  userRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });

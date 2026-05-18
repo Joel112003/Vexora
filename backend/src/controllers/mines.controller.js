@@ -5,6 +5,11 @@ import {
   calculateMinesMultiplier,
   revealTile,
 } from "../services/mines.service.js";
+import {
+  deleteMinesGame,
+  saveMinesGame,
+  getMinesGame,
+} from "../cache/index.js";
 
 const activeGames = new Map();
 
@@ -15,8 +20,8 @@ export const startMines = async (req, res) => {
     //create grid with random mine positions
     const grid = createMineGames(mineCount);
 
-    //save the game stats for the user
-    activeGames.set(req.user._id.toString(), {
+    // Save game data in Redis so it doesn't reset after server restart and can be used by all servers.
+    await saveMinesGame(req.user._id.toString(), {
       grid,
       mineCount,
       betAmount,
@@ -52,8 +57,8 @@ export const revealMineTile = async (req, res) => {
     const { tile, gird } = revealTile({ grid: game.grid, index });
 
     if (tile.isMine) {
-      // user hits a mine -- delete game , save as loss
-      activeGames.delete(userId);
+      //delete from redis - game is over.
+      await deleteMinesGame(userId);
 
       await placeBet({
         userId: req.user._id,
@@ -78,8 +83,10 @@ export const revealMineTile = async (req, res) => {
       );
     }
 
+    //updated the game state in redis with new revealed count and grid
     game.revealed += 1;
     game.grid = grid;
+    await saveMinesGame(userid, game);
 
     //calculate the multiplier based on the mine revealed so far
     const multiplier = calculateMinesMultiplier(game.revealed, game.mineCount);
@@ -122,8 +129,9 @@ export const cashoutMines = async (req, res) => {
 
     const multiplier = calculateMinesMultiplier(game.revealed, game.mineCount);
     const payout = parseFloat((game.betAmount * multiplier).toFixed(2));
-
-    activeGames.delete(userId);
+    
+    // delete from Redis before saving bet
+    await deleteMinesGame(userId);
 
     const { bet, balance } = await placeBet({
       userId: req.user._id,

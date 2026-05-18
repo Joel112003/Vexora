@@ -21,7 +21,7 @@ export const cacheBalance = async (userId, balance) => {
   await setCache(`balance : ${userId}`, balance, BALANCE_TTL);
 };
 
-export const getCacheBalance = async (userId) => {
+export const getCachedBalance = async (userId) => {
   await getCache(`balance : ${userId}`);
 };
 
@@ -31,11 +31,11 @@ export const invalidatedBalance = async (userId) => {
 
 // bet history cache
 const BET_HISTORY_TTL = 30;
-export const cacheHistory = async (userId, bets) => {
+export const cacheBetHistory = async (userId, bets) => {
   await setCache(`bet-history : ${userId}`, bets, BET_HISTORY_TTL);
 };
 
-export const getCachedGetHistory = async (userId) => {
+export const getCachedBetHistory = async (userId) => {
   await getCache(`bet-history : ${userId}`);
 };
 

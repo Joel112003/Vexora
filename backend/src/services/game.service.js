@@ -1,4 +1,5 @@
 import { User, Bet } from "../models/index.js";
+import { invalidatedBalance, invalidatedBetHistory } from "../cache/index.js";
 
 export const placeBet = async ({
   userId,
@@ -32,5 +33,10 @@ export const placeBet = async ({
     outcome,
     gameData,
   });
+
+  // invalidated cached balance and history so the next read gets fresh data
+  await invalidatedBalance(userId.toString());
+  await invalidatedBetHistory(userId.toString());
+
   return { bet, balance: user.balance };
 };
