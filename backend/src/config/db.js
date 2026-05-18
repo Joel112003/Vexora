@@ -6,7 +6,7 @@ const connectDB = async () => {
       dbName: "Vexora",
     });
     mongoose.set("strictQuery", true);
-    console.log("MongoDB connected Successfully!");
+    console.log(`MongoDB connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`MongoDB connection failed : ${error.message}`);
     process.exit(1);

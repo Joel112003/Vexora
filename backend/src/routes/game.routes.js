@@ -21,7 +21,7 @@ import {
   minesRevealSchema,
   minesStartSchema,
   crashBetSchema,
-} from "../validators/game.validator";
+} from "../validators/game.validator.js";
 
 const router = express.Router();
 
