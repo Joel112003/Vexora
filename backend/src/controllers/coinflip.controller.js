@@ -1,6 +1,6 @@
-import { coinFlip } from "../services/coinflip.service";
-import { apiResponse } from "../utilis/apiResponse";
-import { placeBet } from "../services/game.service";
+import { coinFlip } from "../services/coinflip.service.js";
+import { apiResponse } from "../utilis/apiResponse.js";
+import { placeBet } from "../services/game.service.js";
 
 export const playCoinFlip = async (req, res) => {
   try {

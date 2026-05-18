@@ -1,6 +1,6 @@
-import { rollDice } from "../services/dice.service";
-import { placeBet } from "../services/game.service";
-import { apiResponse } from "../utilis/apiResponse";
+import { rollDice } from "../services/dice.service.js";
+import { placeBet } from "../services/game.service.js";
+import { apiResponse } from "../utilis/apiResponse.js";
 
 export const playDice = async (req, res) => {
   try {

@@ -1,10 +1,10 @@
-import { placeBet } from "../services/game.service";
-import { apiResponse } from "../utilis/apiResponse";
+import { placeBet } from "../services/game.service.js";
+import { apiResponse } from "../utilis/apiResponse.js";
 import {
   createMineGames,
   calculateMinesMultiplier,
   revealTile,
-} from "../services/mines.service";
+} from "../services/mines.service.js";
 
 const activeGames = new Map();
 
