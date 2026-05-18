@@ -7,6 +7,7 @@ import xssClean from "xss-clean";
 import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/auth.routes.js";
+import gameRoutes from './routes/game.routes.js';
 
 dotenv.config();
 
@@ -44,6 +45,7 @@ app.get("/health", (req, res) => {
 });
 
 app.use("/api/v1/auth", authRoutes);
+app.use('/api/v2/games', gameRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ success: false, message: "Route not found" });
