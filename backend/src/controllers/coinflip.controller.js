@@ -29,6 +29,6 @@ export const playCoinFlip = async (req, res) => {
       }),
     );
   } catch (error) {
-    res.status(401).json(apiResponse(false, error.message));
+    res.status(400).json(apiResponse(false, error.message));
   }
 };

@@ -17,7 +17,7 @@ export const playDice = async (req, res) => {
         .json(apiResponse(false, "Target must be between 2 and 98."));
     }
     const result = rollDice({ betAmount, direction, target });
-    
+
     const { bet, balance } = await placeBet({
       userId: req.user._id,
       gameType: "dice",
@@ -36,6 +36,6 @@ export const playDice = async (req, res) => {
       }),
     );
   } catch (error) {
-    res.status(401).json(apiResponse(false, error.message));
+    res.status(400).json(apiResponse(false, error.message));
   }
 };
