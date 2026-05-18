@@ -8,6 +8,7 @@ import mongoSanitize from "express-mongo-sanitize";
 import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/auth.routes.js";
 import gameRoutes from './routes/game.routes.js';
+import userRoutes from "./routes/user.routes.js"
 
 dotenv.config();
 

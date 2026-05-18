@@ -6,7 +6,7 @@ import {
   addDemoCoins,
 } from "../controllers/user.controller.js";
 
-const router = express.router();
+const router = express.Router();
 
 router.use(protect);
 router.get("/balance", getBalance);

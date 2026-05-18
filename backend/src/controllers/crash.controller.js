@@ -7,18 +7,18 @@ import { apiResponse } from "../utilis/apiResponse.js";
 
 export let activeCrashBets = new Map();
 export let currentCrashPoints = generateCrashPoints();
-export let gamePhase = " waiting";
+export let gamePhase = 'waiting';
 export let currentMultiplier = 1.0;
 
 export const setGamePhase = (v) => {
-  gamePhase(v);
+  gamePhase = v;
 };
 export const setCurrentMultiplier = (v) => {
-  currentMultiplier(v);
+  currentMultiplier = v;
 };
 
 export const setCurrentCrashPoint = (v) => {
-  currentCrashPoints(v);
+  currentCrashPoints = v;
 };
 
 export const getState = (req, res) => {
@@ -67,7 +67,7 @@ export const placeCrashBet = async (req, res) => {
 export const cashoutCrash = async (req, res) => {
   try {
     const userId = req.user._id.toString();
-    const bet = activeCrashBets.set(userId);
+    const bet = activeCrashBets.get(userId);
 
     if (!bet) {
       return res.status(400).json(apiResponse(false, "No active bets!"));

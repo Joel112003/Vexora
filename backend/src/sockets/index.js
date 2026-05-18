@@ -43,8 +43,8 @@ export const initSocket = (httpServer) => {
     while (true) {
       //generate crash points for this round before anyone bet
       setCurrentCrashPoint(generateCrashPoints());
-      setGamePhase("waiting");
-      setCurrentCrashPoint(1.0);
+      setGamePhase('waiting');
+      setCurrentMultiplier(1.0);
 
       // tell the user new round is starting
       io.emit("crash:waiting", {
