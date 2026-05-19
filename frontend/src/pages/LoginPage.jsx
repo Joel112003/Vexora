@@ -1,10 +1,37 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useLogin } from "../hooks/useAuth";
 import Input from "../common/ui/Input.jsx";
 import Button from "../common/ui/Button.jsx";
 
+/* ---------- floating particle ---------- */
+const Particle = ({ x, y, delay, size, duration }) => (
+  <motion.div
+    className="absolute rounded-full pointer-events-none"
+    style={{
+      left: `${x}%`,
+      top: `${y}%`,
+      width: size,
+      height: size,
+      background: 'radial-gradient(circle, rgba(245,158,11,0.8) 0%, transparent 70%)',
+      filter: 'blur(1px)',
+    }}
+    animate={{ y: [0, -40, 0], opacity: [0, 1, 0], scale: [0.5, 1, 0.5] }}
+    transition={{ duration, delay, repeat: Infinity, ease: 'easeInOut' }}
+  />
+);
+
+const particles = Array.from({ length: 18 }, (_, i) => ({
+  id: i,
+  x: Math.random() * 100,
+  y: Math.random() * 100,
+  delay: Math.random() * 4,
+  size: Math.random() * 4 + 2,
+  duration: Math.random() * 3 + 3,
+}));
+
+/* ---------- login page ---------- */
 const LoginPage = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
@@ -12,15 +39,8 @@ const LoginPage = () => {
   const { mutate: login, isPending, error } = useLogin();
 
   const handleChange = (field) => (e) => {
-    setForm((prev) => ({
-      ...prev,
-      [field]: e.target.value,
-    }));
-    if (errors[field])
-      setErrors((prev) => ({
-        ...prev,
-        [field]: "",
-      }));
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   const validate = () => {
@@ -38,62 +58,203 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-bg flex items-center justify-center px-4">
+    <div
+      className="min-h-screen flex items-center justify-center px-4 overflow-hidden relative"
+      style={{ background: '#050508', fontFamily: "'Rajdhani', 'Barlow Condensed', sans-serif" }}
+    >
+      {/* Font import */}
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:wght@300;400;500&display=swap');`}</style>
+
+      {/* Deep background gradients */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] opacity-20"
+          style={{ background: 'radial-gradient(ellipse, #b45309 0%, transparent 70%)' }} />
+        <div className="absolute bottom-0 left-0 w-[500px] h-[400px] opacity-10"
+          style={{ background: 'radial-gradient(ellipse, #f59e0b 0%, transparent 70%)' }} />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[400px] opacity-10"
+          style={{ background: 'radial-gradient(ellipse, #92400e 0%, transparent 70%)' }} />
+
+        {/* Grid pattern */}
+        <div className="absolute inset-0 opacity-[0.04]"
+          style={{ backgroundImage: 'linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+
+        {/* Diagonal lines */}
+        <div className="absolute inset-0 opacity-[0.03]"
+          style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(245,158,11,0.3) 40px, rgba(245,158,11,0.3) 41px)' }} />
+      </div>
+
+      {/* Floating particles */}
+      {particles.map((p) => <Particle key={p.id} {...p} />)}
+
+      {/* Corner ornaments */}
+      <div className="absolute top-8 left-8 w-16 h-16 opacity-30 pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-amber-500 to-transparent" />
+        <div className="absolute top-0 left-0 h-full w-[2px] bg-gradient-to-b from-amber-500 to-transparent" />
+      </div>
+      <div className="absolute top-8 right-8 w-16 h-16 opacity-30 pointer-events-none">
+        <div className="absolute top-0 right-0 w-full h-[2px] bg-gradient-to-l from-amber-500 to-transparent" />
+        <div className="absolute top-0 right-0 h-full w-[2px] bg-gradient-to-b from-amber-500 to-transparent" />
+      </div>
+      <div className="absolute bottom-8 left-8 w-16 h-16 opacity-30 pointer-events-none">
+        <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-amber-500 to-transparent" />
+        <div className="absolute bottom-0 left-0 h-full w-[2px] bg-gradient-to-t from-amber-500 to-transparent" />
+      </div>
+      <div className="absolute bottom-8 right-8 w-16 h-16 opacity-30 pointer-events-none">
+        <div className="absolute bottom-0 right-0 w-full h-[2px] bg-gradient-to-l from-amber-500 to-transparent" />
+        <div className="absolute bottom-0 right-0 h-full w-[2px] bg-gradient-to-t from-amber-500 to-transparent" />
+      </div>
+
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="w-full max-w-md"
+        initial={{ opacity: 0, y: 40, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-md relative z-10"
       >
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome back</h1>
-          <p className="text-gray-400">Sign in to your account</p>
-        </div>
+        {/* Logo / Brand */}
+        <motion.div
+          className="text-center mb-10"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
+        >
+          {/* Diamond logo mark */}
+          <div className="flex justify-center mb-4">
+            <div className="relative">
+              <motion.div
+                className="w-14 h-14 rotate-45 border-2 border-amber-500/70 rounded-sm"
+                animate={{ boxShadow: ['0 0 20px rgba(245,158,11,0.3)', '0 0 40px rgba(245,158,11,0.6)', '0 0 20px rgba(245,158,11,0.3)'] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xl" style={{ fontFamily: 'serif' }}>♠</span>
+              </div>
+            </div>
+          </div>
+
+          <h1
+            className="text-4xl font-bold tracking-[0.15em] uppercase"
+            style={{
+              fontFamily: 'Rajdhani, sans-serif',
+              background: 'linear-gradient(135deg, #f59e0b, #fbbf24, #d97706)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              textShadow: 'none',
+              filter: 'drop-shadow(0 0 20px rgba(245,158,11,0.4))',
+            }}
+          >
+            Welcome Back
+          </h1>
+          <p className="text-gray-500 text-sm tracking-[0.2em] uppercase mt-2"
+            style={{ fontFamily: 'Barlow, sans-serif', fontWeight: 300 }}>
+            Sign in to your account
+          </p>
+        </motion.div>
 
         {/* Card */}
-        <div className="bg-brand-card border border-brand-border rounded-2xl p-8">
-          {/* API error message */}
-          {error && (
-            <div className="mb-4 p-3 rounded-lg bg-red-500/10 border border-red-500/30">
-              <p className="text-sm text-red-400 text-center">
-                {error.response?.data?.message || "Something went wrong"}
-              </p>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="relative"
+        >
+          {/* Card glow */}
+          <div className="absolute -inset-[1px] rounded-2xl opacity-40"
+            style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.4), transparent 40%, rgba(245,158,11,0.1) 100%)' }} />
+
+          {/* Card body */}
+          <div
+            className="relative rounded-2xl p-8 overflow-hidden"
+            style={{
+              background: 'linear-gradient(145deg, rgba(15,12,8,0.95) 0%, rgba(8,7,4,0.98) 100%)',
+              border: '1px solid rgba(245,158,11,0.15)',
+              backdropFilter: 'blur(20px)',
+            }}
+          >
+            {/* Inner top highlight */}
+            <div className="absolute top-0 left-8 right-8 h-[1px]"
+              style={{ background: 'linear-gradient(90deg, transparent, rgba(245,158,11,0.4), transparent)' }} />
+
+            {/* Subtle inner glow */}
+            <div className="absolute top-0 left-0 right-0 h-40 opacity-30 pointer-events-none"
+              style={{ background: 'radial-gradient(ellipse at 50% -20%, rgba(245,158,11,0.15) 0%, transparent 70%)' }} />
+
+            {/* API Error */}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  className="overflow-hidden"
+                >
+                  <div className="p-3 rounded-xl flex items-center gap-3"
+                    style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
+                    <p className="text-sm text-red-400" style={{ fontFamily: 'Barlow, sans-serif', fontWeight: 400 }}>
+                      {error.response?.data?.message || "Something went wrong"}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
+                <Input label="Email" type="email" value={form.email} onChange={handleChange("email")} placeholder="you@example.com" error={errors.email} />
+              </motion.div>
+              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
+                <Input label="Password" type="password" value={form.password} onChange={handleChange("password")} placeholder="••••••••" error={errors.password} />
+              </motion.div>
+
+              {/* Forgot password */}
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}
+                className="flex justify-end -mt-2"
+              >
+                <span className="text-xs text-amber-600/60 hover:text-amber-500 cursor-pointer transition-colors tracking-widest uppercase"
+                  style={{ fontFamily: 'Barlow, sans-serif' }}>
+                  Forgot Password?
+                </span>
+              </motion.div>
+
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
+                <Button type="submit" loading={isPending} fullWidth>
+                  Enter the Arena
+                </Button>
+              </motion.div>
+            </form>
+
+            {/* Divider */}
+            <div className="flex items-center gap-3 my-6">
+              <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(90deg, transparent, rgba(245,158,11,0.15))' }} />
+              <span className="text-[10px] text-gray-700 tracking-[0.25em] uppercase" style={{ fontFamily: 'Barlow, sans-serif' }}>New Player?</span>
+              <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(90deg, rgba(245,158,11,0.15), transparent)' }} />
             </div>
-          )}
 
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <Input
-              label="Email"
-              type="email"
-              value={form.email}
-              onChange={handleChange("email")}
-              placeholder="you@example.com"
-              error={errors.email}
-            />
-            <Input
-              label="Password"
-              type="password"
-              value={form.password}
-              onChange={handleChange("password")}
-              placeholder="••••••••"
-              error={errors.password}
-            />
-            <Button type="submit" loading={isPending} fullWidth>
-              Sign in
-            </Button>
-          </form>
+            <p className="text-center text-sm text-gray-600" style={{ fontFamily: 'Barlow, sans-serif', fontWeight: 300 }}>
+              <Link to="/register">
+                <motion.span
+                  className="inline-block text-amber-500/80 hover:text-amber-400 transition-colors tracking-widest uppercase text-xs cursor-pointer"
+                  whileHover={{ letterSpacing: '0.35em' }}
+                  transition={{ duration: 0.3 }}
+                >
+                  Create Account →
+                </motion.span>
+              </Link>
+            </p>
+          </div>
+        </motion.div>
 
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Don't have an account?{" "}
-            <Link
-              to="/register"
-              className="text-brand-primary hover:text-purple-400 transition-colors"
-            >
-              Create one
-            </Link>
-          </p>
-        </div>
+        {/* Bottom tagline */}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+          className="text-center text-[10px] text-gray-700 mt-6 tracking-[0.25em] uppercase"
+          style={{ fontFamily: 'Barlow, sans-serif' }}
+        >
+          Play responsibly · 18+ only · Licensed & Secure
+        </motion.p>
       </motion.div>
     </div>
   );

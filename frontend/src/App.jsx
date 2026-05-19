@@ -9,7 +9,7 @@ import CoinflipPage       from './pages/CoinflipPage';
 import MinesPage          from './pages/MinesPage';
 import CrashPage          from './pages/CrashPage';
 import MainLayout         from './layouts/MainLayout';
-
+import LandingPage from "./pages/LandingPage"
 
 function App() {
   const { user } = useAuthStore();
@@ -17,6 +17,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route 
+        path='/landing'
+        element = {<LandingPage /> }
+        />
+
 
         {/* Public routes — redirect to dashboard if already logged in */}
         <Route
