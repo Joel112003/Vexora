@@ -1,355 +1,163 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
-import { useLogin } from "../hooks/useAuth";
-import Input from "../common/ui/Input.jsx";
-import Button from "../common/ui/Button.jsx";
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useLogin } from '../hooks/useAuth';
+import Input from '../common/ui/Input.jsx';
+import Button from '../common/ui/Button.jsx';
 
-/* ─── Floating blob shapes (claymation-inspired) ─── */
-const Blob = ({ style, animate, transition }) => (
-  <motion.div
-    style={{
-      position: 'absolute',
-      borderRadius: '60% 40% 55% 45% / 50% 60% 40% 50%',
-      pointerEvents: 'none',
-      ...style,
-    }}
-    animate={animate}
-    transition={transition}
-  />
-);
-
-/* ─── Badge pill ─── */
-const Badge = ({ children, color = '#f5f0e0' }) => (
-  <span style={{
-    display: 'inline-flex',
-    alignItems: 'center',
-    padding: '4px 12px',
-    background: color,
-    borderRadius: '9999px',
-    fontFamily: 'Inter, sans-serif',
-    fontSize: '12px',
-    fontWeight: 600,
-    color: '#3a3a3a',
-    letterSpacing: '0',
-  }}>
-    {children}
-  </span>
-);
-
-/* ─── Staggered card entry ─── */
-const cardVariants = {
-  hidden: { opacity: 0, y: 32, scale: 0.98 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] } },
+/* ─── TOKENS ─── */
+const C = {
+  bg:           '#040605',
+  bgCard:       '#0d1410',
+  bgSubtle:     '#111a14',
+  border:       'rgba(85,211,150,0.08)',
+  borderMid:    'rgba(85,211,150,0.15)',
+  borderStrong: 'rgba(85,211,150,0.28)',
+  green:        '#55D396',
+  greenDeep:    '#169A50',
+  greenDim:     'rgba(85,211,150,0.1)',
+  white:        '#FFFFFF',
+  offWhite:     '#E8EDE9',
+  muted:        '#6B7B6E',
+  faint:        '#2A3A2D',
+  error:        '#ef4444',
 };
 
-const fieldVariants = {
-  hidden: { opacity: 0, x: -16 },
-  visible: (i) => ({
-    opacity: 1,
-    x: 0,
-    transition: { delay: 0.3 + i * 0.08, duration: 0.4, ease: [0.4, 0, 0.2, 1] },
-  }),
+const FONT_DISPLAY = `'General Sans', 'DM Sans', sans-serif`;
+const FONT_BODY    = `'Barlow', 'Inter', sans-serif`;
+
+const card = {
+  hidden:  { opacity:0, y:24, scale:0.99 },
+  visible: { opacity:1, y:0,  scale:1, transition:{ duration:0.55, ease:[0.16,1,0.3,1] } },
+};
+const field = {
+  hidden:  { opacity:0, x:-12 },
+  visible: (i) => ({ opacity:1, x:0, transition:{ delay:0.28+i*0.08, duration:0.36, ease:[0.4,0,0.2,1] } }),
 };
 
 const LoginPage = () => {
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm]   = useState({ email:'', password:'' });
   const [errors, setErrors] = useState({});
-  const { mutate: login, isPending, error } = useLogin();
+  const { mutate:login, isPending, error } = useLogin();
 
   const handleChange = (field) => (e) => {
-    setForm((prev) => ({ ...prev, [field]: e.target.value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
+    setForm(p => ({ ...p, [field]: e.target.value }));
+    if(errors[field]) setErrors(p => ({ ...p, [field]:'' }));
   };
 
   const validate = () => {
-    const newErrors = {};
-    if (!form.email) newErrors.email = "Email is required";
-    if (!form.password) newErrors.password = "Password is required";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    const e = {};
+    if(!form.email)    e.email    = 'Email is required';
+    if(!form.password) e.password = 'Password is required';
+    setErrors(e);
+    return Object.keys(e).length === 0;
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    if(!validate()) return;
     login(form);
   };
 
   return (
-    <div
-      style={{
-        minHeight: '100vh',
-        background: '#fffaf0',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '48px 16px',
-        position: 'relative',
-        overflow: 'hidden',
-        fontFamily: 'Inter, sans-serif',
-      }}
-    >
-      {/* Google Fonts */}
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');`}</style>
+    <div style={{ minHeight:'100vh', backgroundColor: C.bg, display:'flex', alignItems:'center', justifyContent:'center', padding:'48px 16px', position:'relative', overflow:'hidden', fontFamily:FONT_BODY }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&display=swap');
+        @import url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap');
+        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+      `}</style>
 
-      {/* Clay blobs — decorative background shapes */}
-      <Blob
-        style={{
-          width: 420, height: 380,
-          top: '-80px', right: '-60px',
-          background: 'linear-gradient(135deg, #ffb084 0%, #ff4d8b 100%)',
-          opacity: 0.22,
-        }}
-        animate={{ borderRadius: ['60% 40% 55% 45% / 50% 60% 40% 50%', '45% 55% 40% 60% / 60% 40% 55% 45%', '60% 40% 55% 45% / 50% 60% 40% 50%'] }}
-        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      <Blob
-        style={{
-          width: 320, height: 300,
-          bottom: '-60px', left: '-40px',
-          background: 'linear-gradient(135deg, #b8a4ed 0%, #a4d4c5 100%)',
-          opacity: 0.25,
-        }}
-        animate={{ borderRadius: ['55% 45% 60% 40% / 45% 55% 45% 55%', '40% 60% 45% 55% / 55% 45% 60% 40%', '55% 45% 60% 40% / 45% 55% 45% 55%'] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-      />
-      <Blob
-        style={{
-          width: 200, height: 180,
-          top: '40%', left: '-30px',
-          background: '#e8b94a',
-          opacity: 0.18,
-        }}
-        animate={{ borderRadius: ['50% 50% 60% 40% / 40% 60% 50% 50%', '60% 40% 50% 50% / 50% 50% 40% 60%', '50% 50% 60% 40% / 40% 60% 50% 50%'] }}
-        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
-      />
+      {/* Grid */}
+      <div style={{ position:'absolute', inset:0, backgroundImage:`linear-gradient(rgba(85,211,150,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(85,211,150,0.025) 1px, transparent 1px)`, backgroundSize:'48px 48px', pointerEvents:'none' }} />
+      {/* Glow */}
+      <div style={{ position:'absolute', top:'15%', left:'50%', transform:'translateX(-50%)', width:480, height:240, background:'radial-gradient(ellipse, rgba(85,211,150,0.06) 0%, transparent 70%)', pointerEvents:'none' }} />
 
-      {/* Subtle dot pattern */}
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        backgroundImage: 'radial-gradient(circle, #e5e5e5 1px, transparent 1px)',
-        backgroundSize: '28px 28px',
-        opacity: 0.5,
-      }} />
-
-      {/* Content wrapper */}
-      <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '440px' }}>
-
-        {/* Brand header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-          style={{ textAlign: 'center', marginBottom: '32px' }}
-        >
-          {/* Claymation logo blob */}
+      <div style={{ position:'relative', zIndex:10, width:'100%', maxWidth:440 }}>
+        {/* Header */}
+        <motion.div initial={{opacity:0,y:-20}} animate={{opacity:1,y:0}} transition={{duration:0.5,ease:[0.16,1,0.3,1]}} style={{textAlign:'center',marginBottom:32}}>
           <motion.div
-            style={{
-              width: 56, height: 56,
-              background: 'linear-gradient(135deg, #ff4d8b 0%, #ffb084 100%)',
-              borderRadius: '40% 60% 55% 45% / 50% 45% 55% 50%',
-              margin: '0 auto 16px',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 8px 32px rgba(255,77,139,0.28)',
-            }}
-            animate={{
-              borderRadius: ['40% 60% 55% 45% / 50% 45% 55% 50%', '55% 45% 40% 60% / 45% 55% 50% 50%', '40% 60% 55% 45% / 50% 45% 55% 50%'],
-              y: [0, -4, 0],
-            }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ width:48, height:48, border:`1px solid ${C.borderStrong}`, borderRadius:12, margin:'0 auto 20px', display:'flex', alignItems:'center', justifyContent:'center', backgroundColor: C.greenDim }}
+            animate={{ boxShadow:['0 0 0px rgba(85,211,150,0)','0 0 24px rgba(85,211,150,0.2)','0 0 0px rgba(85,211,150,0)'] }}
+            transition={{ duration:3, repeat:Infinity, ease:'easeInOut' }}
           >
-            <span style={{ fontSize: 22 }}>✦</span>
+            <div style={{ width:12, height:12, backgroundColor: C.green, borderRadius:3 }}/>
           </motion.div>
 
-          <h1 style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '40px',
-            fontWeight: 500,
-            lineHeight: 1.05,
-            letterSpacing: '-2px',
-            color: '#0a0a0a',
-            margin: 0,
-          }}>
+          <h1 style={{ fontFamily:FONT_DISPLAY, fontSize:40, fontWeight:600, letterSpacing:'-2px', lineHeight:1.0, color: C.white, margin:0 }}>
             Welcome back
           </h1>
-          <p style={{
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '16px',
-            fontWeight: 400,
-            color: '#6a6a6a',
-            marginTop: '8px',
-          }}>
+          <p style={{ fontFamily:FONT_BODY, fontSize:15, fontWeight:300, color: C.muted, marginTop:8 }}>
             Sign in to your account
           </p>
         </motion.div>
 
         {/* Card */}
-        <motion.div
-          variants={cardVariants}
-          initial="hidden"
-          animate="visible"
-          style={{
-            background: '#fffaf0',
-            border: '1px solid #e5e5e5',
-            borderRadius: '24px',
-            padding: '40px 36px',
-            boxShadow: '0 2px 48px rgba(10,10,10,0.06), 0 1px 4px rgba(10,10,10,0.04)',
-          }}
+        <motion.div variants={card} initial="hidden" animate="visible"
+          style={{ backgroundColor: C.bgCard, border:`1px solid ${C.border}`, borderRadius:20, padding:'36px' }}
         >
-          {/* API Error */}
           <AnimatePresence>
             {error && (
               <motion.div
-                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                animate={{ opacity: 1, height: 'auto', marginBottom: '20px' }}
-                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                style={{ overflow: 'hidden' }}
+                initial={{opacity:0,height:0,marginBottom:0}} animate={{opacity:1,height:'auto',marginBottom:20}} exit={{opacity:0,height:0,marginBottom:0}}
+                style={{overflow:'hidden'}}
               >
-                <div style={{
-                  padding: '12px 16px',
-                  borderRadius: '12px',
-                  background: 'rgba(239,68,68,0.06)',
-                  border: '1px solid rgba(239,68,68,0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '10px',
-                }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
-                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#ef4444', margin: 0 }}>
-                    {error.response?.data?.message || "Something went wrong"}
+                <div style={{ padding:'12px 16px', borderRadius:10, backgroundColor:'rgba(239,68,68,0.06)', border:'1px solid rgba(239,68,68,0.18)', display:'flex', alignItems:'center', gap:10 }}>
+                  <div style={{ width:5, height:5, borderRadius:'50%', backgroundColor: C.error, flexShrink:0 }}/>
+                  <p style={{ fontFamily:FONT_BODY, fontSize:13, color: C.error, margin:0 }}>
+                    {error.response?.data?.message || 'Something went wrong'}
                   </p>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
             {[
-              { field: 'email', label: 'Email', type: 'email', placeholder: 'you@example.com' },
-              { field: 'password', label: 'Password', type: 'password', placeholder: '••••••••' },
-            ].map(({ field, label, type, placeholder }, i) => (
-              <motion.div key={field} custom={i} variants={fieldVariants} initial="hidden" animate="visible">
-                <Input
-                  label={label}
-                  type={type}
-                  value={form[field]}
-                  onChange={handleChange(field)}
-                  placeholder={placeholder}
-                  error={errors[field]}
-                />
+              { field:'email',    label:'Email',    type:'email'},
+              { field:'password', label:'Password', type:'password'},
+            ].map(({ field:f, label, type, placeholder }, i) => (
+              <motion.div key={f} custom={i} variants={field} initial="hidden" animate="visible">
+                <Input label={label} type={type} value={form[f]} onChange={handleChange(f)} placeholder={placeholder} error={errors[f]} />
               </motion.div>
             ))}
 
-            {/* Forgot password */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-4px' }}
-            >
-              <span style={{
-                fontFamily: 'Inter, sans-serif',
-                fontSize: '13px',
-                fontWeight: 500,
-                color: '#6a6a6a',
-                cursor: 'pointer',
-                textDecoration: 'underline',
-                textDecorationColor: 'transparent',
-                transition: 'color 0.2s, text-decoration-color 0.2s',
-              }}
-              onMouseEnter={e => { e.target.style.color = '#0a0a0a'; e.target.style.textDecorationColor = '#0a0a0a'; }}
-              onMouseLeave={e => { e.target.style.color = '#6a6a6a'; e.target.style.textDecorationColor = 'transparent'; }}
-              >
-                Forgot password?
-              </span>
+            <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.48}} style={{ display:'flex', justifyContent:'flex-end', marginTop:-4 }}>
+              <span style={{ fontFamily:FONT_BODY, fontSize:12, fontWeight:500, color: C.muted, cursor:'pointer', transition:'color 0.15s' }}
+                onMouseEnter={e=>e.currentTarget.style.color=C.offWhite}
+                onMouseLeave={e=>e.currentTarget.style.color=C.muted}
+              >Forgot password?</span>
             </motion.div>
 
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.55 }}
-            >
-              <Button type="submit" loading={isPending} fullWidth>
-                Sign in
-              </Button>
+            <motion.div initial={{opacity:0,y:8}} animate={{opacity:1,y:0}} transition={{delay:0.54}}>
+              <Button type="submit" loading={isPending} fullWidth>Sign in</Button>
             </motion.div>
           </form>
 
-          {/* Divider */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.65 }}
-            style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '24px 0' }}
-          >
-            <div style={{ flex: 1, height: '1px', background: '#e5e5e5' }} />
-            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#9a9a9a', fontWeight: 500 }}>
-              New here?
-            </span>
-            <div style={{ flex: 1, height: '1px', background: '#e5e5e5' }} />
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.65}} style={{ display:'flex', alignItems:'center', gap:12, margin:'24px 0' }}>
+            <div style={{ flex:1, height:1, backgroundColor: C.border }} />
+            <span style={{ fontFamily:FONT_BODY, fontSize:12, fontWeight:400, color: C.muted }}>New here?</span>
+            <div style={{ flex:1, height:1, backgroundColor: C.border }} />
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            style={{ textAlign: 'center' }}
-          >
-            <Link to="/register" style={{ textDecoration: 'none' }}>
+          <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.7}} style={{textAlign:'center'}}>
+            <Link to="/register" style={{textDecoration:'none'}}>
               <motion.span
-                style={{
-                  fontFamily: 'Inter, sans-serif',
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  color: '#0a0a0a',
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  padding: '8px 16px',
-                  borderRadius: '9999px',
-                  background: '#f5f0e0',
-                  transition: 'background 0.2s',
-                }}
-                whileHover={{ background: '#ebe6d6', scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
-                Create an account →
-              </motion.span>
+                style={{ fontFamily:FONT_BODY, fontSize:13, fontWeight:500, color: C.offWhite, display:'inline-flex', alignItems:'center', gap:4, padding:'9px 18px', borderRadius:9999, border:`1px solid ${C.border}` }}
+                whileHover={{ borderColor: C.borderMid, color: C.white, scale:1.02 }}
+                whileTap={{ scale:0.98 }}
+              >Create an account →</motion.span>
             </Link>
           </motion.div>
         </motion.div>
 
-        {/* Feature badges */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.85 }}
-          style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '20px', flexWrap: 'wrap' }}
-        >
-          {[
-            { label: '🎰 Instant Access', color: '#faf5e8' },
-            { label: '🏆 Leaderboards', color: '#faf5e8' },
-            { label: '🎁 Daily Rewards', color: '#faf5e8' },
-          ].map(({ label, color }) => (
-            <Badge key={label} color={color}>{label}</Badge>
+        {/* Badges */}
+        <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.85}} style={{ display:'flex', justifyContent:'center', gap:8, marginTop:20, flexWrap:'wrap' }}>
+          {['🎰 Instant Access','🏆 Leaderboards','🎁 Daily Rewards'].map(label => (
+            <span key={label} style={{ display:'inline-flex', alignItems:'center', padding:'5px 12px', borderRadius:9999, border:`1px solid ${C.border}`, backgroundColor: C.greenDim, fontFamily:FONT_BODY, fontSize:11, fontWeight:500, color: C.muted, letterSpacing:'0.3px' }}>{label}</span>
           ))}
         </motion.div>
 
-        {/* Legal */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-          style={{
-            textAlign: 'center',
-            fontFamily: 'Inter, sans-serif',
-            fontSize: '11px',
-            color: '#9a9a9a',
-            marginTop: '16px',
-            fontWeight: 500,
-          }}
-        >
+        <motion.p initial={{opacity:0}} animate={{opacity:1}} transition={{delay:1}} style={{ textAlign:'center', fontFamily:FONT_BODY, fontSize:11, fontWeight:400, color: C.faint, marginTop:16, letterSpacing:'0.3px' }}>
           Play responsibly · 18+ only · Licensed &amp; Secure
         </motion.p>
       </div>

@@ -1,71 +1,54 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-/**
- * Clay UI — Input
- * Canvas: #fffaf0 | Hairline: #e5e5e5 | Focus: ink border
- * Floating label, cream background, 12px rounded
- */
+const C = {
+  bgCard:       '#0d1410',
+  bgField:      '#111a14',
+  border:       'rgba(85,211,150,0.08)',
+  borderFocus:  'rgba(85,211,150,0.4)',
+  borderError:  'rgba(239,68,68,0.5)',
+  green:        '#55D396',
+  white:        '#FFFFFF',
+  offWhite:     '#E8EDE9',
+  muted:        '#6B7B6E',
+  error:        '#ef4444',
+};
+const FONT_BODY    = `'Barlow', 'Inter', sans-serif`;
+
 const Input = ({ label, type = 'text', value, onChange, placeholder, error }) => {
   const [focused, setFocused] = useState(false);
   const hasValue = value && value.length > 0;
-  const lifted = focused || hasValue;
+  const lifted   = focused || hasValue;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      <div style={{ position: 'relative' }}>
-        {/* Focus ring — ink outline */}
+    <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+      <div style={{ position:'relative' }}>
+        {/* Focus ring */}
         <motion.div
-          style={{
-            position: 'absolute',
-            inset: '-2px',
-            borderRadius: '14px',
-            pointerEvents: 'none',
-            border: '2px solid',
-          }}
-          animate={{
-            borderColor: error
-              ? '#ef4444'
-              : focused
-              ? '#0a0a0a'
-              : 'transparent',
-            opacity: error ? 1 : focused ? 1 : 0,
-          }}
-          transition={{ duration: 0.2 }}
+          style={{ position:'absolute', inset:-2, borderRadius:13, pointerEvents:'none', border:'1.5px solid' }}
+          animate={{ borderColor: error ? C.borderError : focused ? C.borderFocus : 'transparent', opacity: error||focused ? 1 : 0 }}
+          transition={{ duration:0.18 }}
         />
 
         {/* Field box */}
-        <div
-          style={{
-            position: 'relative',
-            background: '#fffaf0',
-            border: `1px solid ${error ? '#ef4444' : focused ? '#0a0a0a' : '#e5e5e5'}`,
-            borderRadius: '12px',
-            height: '56px',
-            overflow: 'hidden',
-            transition: 'border-color 0.2s ease',
-          }}
-        >
+        <div style={{
+          position:'relative', borderRadius:11, height:56, overflow:'hidden',
+          backgroundColor: C.bgField,
+          border:`1px solid ${error ? C.borderError : focused ? 'rgba(85,211,150,0.25)' : C.border}`,
+          transition:'border-color 0.2s ease',
+        }}>
           {/* Floating label */}
           {label && (
             <motion.label
-              style={{
-                position: 'absolute',
-                left: '16px',
-                pointerEvents: 'none',
-                zIndex: 2,
-                fontFamily: 'Inter, sans-serif',
-                fontWeight: 500,
-                transformOrigin: 'left center',
-              }}
+              style={{ position:'absolute', left:14, pointerEvents:'none', zIndex:2, fontFamily:FONT_BODY, fontWeight:500, transformOrigin:'left center' }}
               animate={{
-                top: lifted ? '8px' : '50%',
-                y: lifted ? '0%' : '-50%',
+                top:  lifted ? '8px' : '50%',
+                y:    lifted ? '0%' : '-50%',
                 fontSize: lifted ? '10px' : '14px',
-                letterSpacing: lifted ? '0.08em' : '0',
-                color: error ? '#ef4444' : focused ? '#0a0a0a' : '#9a9a9a',
+                letterSpacing: lifted ? '0.1em' : '0',
+                color: error ? C.error : focused ? C.green : C.muted,
               }}
-              transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+              transition={{ duration:0.17, ease:[0.4,0,0.2,1] }}
             >
               {lifted ? label.toUpperCase() : label}
             </motion.label>
@@ -77,69 +60,37 @@ const Input = ({ label, type = 'text', value, onChange, placeholder, error }) =>
             onChange={onChange}
             placeholder={lifted ? '' : placeholder}
             onFocus={() => setFocused(true)}
-            onBlur={() => setFocused(false)}
+            onBlur={()  => setFocused(false)}
             style={{
-              position: 'relative',
-              zIndex: 1,
-              width: '100%',
-              height: '100%',
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              padding: label ? '24px 16px 8px' : '0 16px',
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '15px',
-              fontWeight: 400,
-              color: '#0a0a0a',
-              letterSpacing: '0',
+              position:'relative', zIndex:1, width:'100%', height:'100%',
+              background:'transparent', border:'none', outline:'none',
+              padding: label ? '24px 14px 8px' : '0 14px',
+              fontFamily: FONT_BODY, fontSize:15, fontWeight:400,
+              color: C.offWhite, letterSpacing:'0.1px',
             }}
           />
 
-          {/* Bottom accent line on focus */}
+          {/* Bottom accent */}
           <motion.div
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              height: '2px',
-              background: error ? '#ef4444' : '#0a0a0a',
-              transformOrigin: 'left',
-            }}
+            style={{ position:'absolute', bottom:0, left:0, height:1.5, background: error ? C.error : C.green, transformOrigin:'left' }}
             animate={{ scaleX: focused ? 1 : 0 }}
-            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
-            initial={{ scaleX: 0 }}
+            transition={{ duration:0.22, ease:[0.4,0,0.2,1] }}
+            initial={{ scaleX:0 }}
           />
         </div>
       </div>
 
-      {/* Error message */}
       <AnimatePresence>
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: -4, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: 'auto' }}
-            exit={{ opacity: 0, y: -4, height: 0 }}
-            transition={{ duration: 0.18 }}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              paddingLeft: '4px',
-              overflow: 'hidden',
-            }}
+            initial={{opacity:0,y:-4,height:0}} animate={{opacity:1,y:0,height:'auto'}} exit={{opacity:0,y:-4,height:0}}
+            transition={{duration:0.16}}
+            style={{ display:'flex', alignItems:'center', gap:6, paddingLeft:4, overflow:'hidden' }}
           >
-            <svg width="12" height="12" viewBox="0 0 16 16" fill="#ef4444" style={{ flexShrink: 0 }}>
+            <svg width="11" height="11" viewBox="0 0 16 16" fill={C.error} style={{flexShrink:0}}>
               <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 018 4zm0 8a1 1 0 110-2 1 1 0 010 2z"/>
             </svg>
-            <span style={{
-              fontFamily: 'Inter, sans-serif',
-              fontSize: '12px',
-              fontWeight: 500,
-              color: '#ef4444',
-              letterSpacing: '0',
-            }}>
-              {error}
-            </span>
+            <span style={{ fontFamily:FONT_BODY, fontSize:12, fontWeight:500, color: C.error }}>{error}</span>
           </motion.div>
         )}
       </AnimatePresence>
