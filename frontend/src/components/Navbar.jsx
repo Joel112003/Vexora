@@ -8,11 +8,11 @@ import { useTopup } from '../hooks/useTopup';
 import Button from '../common/ui/Button';
 
 const navLinks = [
-  { path: '/',         label: 'Dashboard', icon: '⬡' },
-  { path: '/dice',     label: 'Dice',      icon: '⚄' },
-  { path: '/coinflip', label: 'Coinflip',  icon: '◉' },
-  { path: '/mines',    label: 'Mines',     icon: '⊛' },
-  { path: '/crash',    label: 'Crash',     icon: '◈' },
+  { path: '/app',         label: 'Dashboard', icon: '⬡' },
+  { path: '/app/dice',     label: 'Dice',      icon: '⚄' },
+  { path: '/app/coinflip', label: 'Coinflip',  icon: '◉' },
+  { path: '/app/mines',    label: 'Mines',     icon: '⊛' },
+  { path: '/app/crash',    label: 'Crash',     icon: '◈' },
 ];
 
 const Navbar = () => {
@@ -27,7 +27,7 @@ const Navbar = () => {
   const showTopup = (balance ?? user?.balance ?? 0) < 500;
 
   const isActive = (path) =>
-    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+    path === '/app' ? location.pathname === '/app' : location.pathname.startsWith(path);
 
   return (
     <>
@@ -49,7 +49,7 @@ const Navbar = () => {
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
 
           {/* Logo */}
-          <Link to="/" className="shrink-0 flex items-center gap-2.5 group">
+          <Link to="/app" className="shrink-0 flex items-center gap-2.5 group">
             <motion.div
               className="relative w-8 h-8"
               whileHover={{ rotate: 180 }}

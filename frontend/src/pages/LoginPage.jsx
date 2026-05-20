@@ -5,37 +5,56 @@ import { useLogin } from "../hooks/useAuth";
 import Input from "../common/ui/Input.jsx";
 import Button from "../common/ui/Button.jsx";
 
-/* ---------- floating particle ---------- */
-const Particle = ({ x, y, delay, size, duration }) => (
+/* ─── Floating blob shapes (claymation-inspired) ─── */
+const Blob = ({ style, animate, transition }) => (
   <motion.div
-    className="absolute rounded-full pointer-events-none"
     style={{
-      left: `${x}%`,
-      top: `${y}%`,
-      width: size,
-      height: size,
-      background: 'radial-gradient(circle, rgba(245,158,11,0.8) 0%, transparent 70%)',
-      filter: 'blur(1px)',
+      position: 'absolute',
+      borderRadius: '60% 40% 55% 45% / 50% 60% 40% 50%',
+      pointerEvents: 'none',
+      ...style,
     }}
-    animate={{ y: [0, -40, 0], opacity: [0, 1, 0], scale: [0.5, 1, 0.5] }}
-    transition={{ duration, delay, repeat: Infinity, ease: 'easeInOut' }}
+    animate={animate}
+    transition={transition}
   />
 );
 
-const particles = Array.from({ length: 18 }, (_, i) => ({
-  id: i,
-  x: Math.random() * 100,
-  y: Math.random() * 100,
-  delay: Math.random() * 4,
-  size: Math.random() * 4 + 2,
-  duration: Math.random() * 3 + 3,
-}));
+/* ─── Badge pill ─── */
+const Badge = ({ children, color = '#f5f0e0' }) => (
+  <span style={{
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '4px 12px',
+    background: color,
+    borderRadius: '9999px',
+    fontFamily: 'Inter, sans-serif',
+    fontSize: '12px',
+    fontWeight: 600,
+    color: '#3a3a3a',
+    letterSpacing: '0',
+  }}>
+    {children}
+  </span>
+);
 
-/* ---------- login page ---------- */
+/* ─── Staggered card entry ─── */
+const cardVariants = {
+  hidden: { opacity: 0, y: 32, scale: 0.98 },
+  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.55, ease: [0.16, 1, 0.3, 1] } },
+};
+
+const fieldVariants = {
+  hidden: { opacity: 0, x: -16 },
+  visible: (i) => ({
+    opacity: 1,
+    x: 0,
+    transition: { delay: 0.3 + i * 0.08, duration: 0.4, ease: [0.4, 0, 0.2, 1] },
+  }),
+};
+
 const LoginPage = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
-
   const { mutate: login, isPending, error } = useLogin();
 
   const handleChange = (field) => (e) => {
@@ -59,203 +78,281 @@ const LoginPage = () => {
 
   return (
     <div
-      className="min-h-screen flex items-center justify-center px-4 overflow-hidden relative"
-      style={{ background: '#050508', fontFamily: "'Rajdhani', 'Barlow Condensed', sans-serif" }}
+      style={{
+        minHeight: '100vh',
+        background: '#fffaf0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '48px 16px',
+        position: 'relative',
+        overflow: 'hidden',
+        fontFamily: 'Inter, sans-serif',
+      }}
     >
-      {/* Font import */}
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Barlow:wght@300;400;500&display=swap');`}</style>
+      {/* Google Fonts */}
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');`}</style>
 
-      {/* Deep background gradients */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] opacity-20"
-          style={{ background: 'radial-gradient(ellipse, #b45309 0%, transparent 70%)' }} />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[400px] opacity-10"
-          style={{ background: 'radial-gradient(ellipse, #f59e0b 0%, transparent 70%)' }} />
-        <div className="absolute bottom-0 right-0 w-[500px] h-[400px] opacity-10"
-          style={{ background: 'radial-gradient(ellipse, #92400e 0%, transparent 70%)' }} />
+      {/* Clay blobs — decorative background shapes */}
+      <Blob
+        style={{
+          width: 420, height: 380,
+          top: '-80px', right: '-60px',
+          background: 'linear-gradient(135deg, #ffb084 0%, #ff4d8b 100%)',
+          opacity: 0.22,
+        }}
+        animate={{ borderRadius: ['60% 40% 55% 45% / 50% 60% 40% 50%', '45% 55% 40% 60% / 60% 40% 55% 45%', '60% 40% 55% 45% / 50% 60% 40% 50%'] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+      />
+      <Blob
+        style={{
+          width: 320, height: 300,
+          bottom: '-60px', left: '-40px',
+          background: 'linear-gradient(135deg, #b8a4ed 0%, #a4d4c5 100%)',
+          opacity: 0.25,
+        }}
+        animate={{ borderRadius: ['55% 45% 60% 40% / 45% 55% 45% 55%', '40% 60% 45% 55% / 55% 45% 60% 40%', '55% 45% 60% 40% / 45% 55% 45% 55%'] }}
+        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+      />
+      <Blob
+        style={{
+          width: 200, height: 180,
+          top: '40%', left: '-30px',
+          background: '#e8b94a',
+          opacity: 0.18,
+        }}
+        animate={{ borderRadius: ['50% 50% 60% 40% / 40% 60% 50% 50%', '60% 40% 50% 50% / 50% 50% 40% 60%', '50% 50% 60% 40% / 40% 60% 50% 50%'] }}
+        transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+      />
 
-        {/* Grid pattern */}
-        <div className="absolute inset-0 opacity-[0.04]"
-          style={{ backgroundImage: 'linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+      {/* Subtle dot pattern */}
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none',
+        backgroundImage: 'radial-gradient(circle, #e5e5e5 1px, transparent 1px)',
+        backgroundSize: '28px 28px',
+        opacity: 0.5,
+      }} />
 
-        {/* Diagonal lines */}
-        <div className="absolute inset-0 opacity-[0.03]"
-          style={{ backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 40px, rgba(245,158,11,0.3) 40px, rgba(245,158,11,0.3) 41px)' }} />
-      </div>
+      {/* Content wrapper */}
+      <div style={{ position: 'relative', zIndex: 10, width: '100%', maxWidth: '440px' }}>
 
-      {/* Floating particles */}
-      {particles.map((p) => <Particle key={p.id} {...p} />)}
-
-      {/* Corner ornaments */}
-      <div className="absolute top-8 left-8 w-16 h-16 opacity-30 pointer-events-none">
-        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-amber-500 to-transparent" />
-        <div className="absolute top-0 left-0 h-full w-[2px] bg-gradient-to-b from-amber-500 to-transparent" />
-      </div>
-      <div className="absolute top-8 right-8 w-16 h-16 opacity-30 pointer-events-none">
-        <div className="absolute top-0 right-0 w-full h-[2px] bg-gradient-to-l from-amber-500 to-transparent" />
-        <div className="absolute top-0 right-0 h-full w-[2px] bg-gradient-to-b from-amber-500 to-transparent" />
-      </div>
-      <div className="absolute bottom-8 left-8 w-16 h-16 opacity-30 pointer-events-none">
-        <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-amber-500 to-transparent" />
-        <div className="absolute bottom-0 left-0 h-full w-[2px] bg-gradient-to-t from-amber-500 to-transparent" />
-      </div>
-      <div className="absolute bottom-8 right-8 w-16 h-16 opacity-30 pointer-events-none">
-        <div className="absolute bottom-0 right-0 w-full h-[2px] bg-gradient-to-l from-amber-500 to-transparent" />
-        <div className="absolute bottom-0 right-0 h-full w-[2px] bg-gradient-to-t from-amber-500 to-transparent" />
-      </div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 40, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-md relative z-10"
-      >
-        {/* Logo / Brand */}
+        {/* Brand header */}
         <motion.div
-          className="text-center mb-10"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          style={{ textAlign: 'center', marginBottom: '32px' }}
         >
-          {/* Diamond logo mark */}
-          <div className="flex justify-center mb-4">
-            <div className="relative">
-              <motion.div
-                className="w-14 h-14 rotate-45 border-2 border-amber-500/70 rounded-sm"
-                animate={{ boxShadow: ['0 0 20px rgba(245,158,11,0.3)', '0 0 40px rgba(245,158,11,0.6)', '0 0 20px rgba(245,158,11,0.3)'] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-xl" style={{ fontFamily: 'serif' }}>♠</span>
-              </div>
-            </div>
-          </div>
-
-          <h1
-            className="text-4xl font-bold tracking-[0.15em] uppercase"
+          {/* Claymation logo blob */}
+          <motion.div
             style={{
-              fontFamily: 'Rajdhani, sans-serif',
-              background: 'linear-gradient(135deg, #f59e0b, #fbbf24, #d97706)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              textShadow: 'none',
-              filter: 'drop-shadow(0 0 20px rgba(245,158,11,0.4))',
+              width: 56, height: 56,
+              background: 'linear-gradient(135deg, #ff4d8b 0%, #ffb084 100%)',
+              borderRadius: '40% 60% 55% 45% / 50% 45% 55% 50%',
+              margin: '0 auto 16px',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 8px 32px rgba(255,77,139,0.28)',
             }}
+            animate={{
+              borderRadius: ['40% 60% 55% 45% / 50% 45% 55% 50%', '55% 45% 40% 60% / 45% 55% 50% 50%', '40% 60% 55% 45% / 50% 45% 55% 50%'],
+              y: [0, -4, 0],
+            }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
           >
-            Welcome Back
+            <span style={{ fontSize: 22 }}>✦</span>
+          </motion.div>
+
+          <h1 style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '40px',
+            fontWeight: 500,
+            lineHeight: 1.05,
+            letterSpacing: '-2px',
+            color: '#0a0a0a',
+            margin: 0,
+          }}>
+            Welcome back
           </h1>
-          <p className="text-gray-500 text-sm tracking-[0.2em] uppercase mt-2"
-            style={{ fontFamily: 'Barlow, sans-serif', fontWeight: 300 }}>
+          <p style={{
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '16px',
+            fontWeight: 400,
+            color: '#6a6a6a',
+            marginTop: '8px',
+          }}>
             Sign in to your account
           </p>
         </motion.div>
 
         {/* Card */}
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          className="relative"
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+          style={{
+            background: '#fffaf0',
+            border: '1px solid #e5e5e5',
+            borderRadius: '24px',
+            padding: '40px 36px',
+            boxShadow: '0 2px 48px rgba(10,10,10,0.06), 0 1px 4px rgba(10,10,10,0.04)',
+          }}
         >
-          {/* Card glow */}
-          <div className="absolute -inset-[1px] rounded-2xl opacity-40"
-            style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.4), transparent 40%, rgba(245,158,11,0.1) 100%)' }} />
-
-          {/* Card body */}
-          <div
-            className="relative rounded-2xl p-8 overflow-hidden"
-            style={{
-              background: 'linear-gradient(145deg, rgba(15,12,8,0.95) 0%, rgba(8,7,4,0.98) 100%)',
-              border: '1px solid rgba(245,158,11,0.15)',
-              backdropFilter: 'blur(20px)',
-            }}
-          >
-            {/* Inner top highlight */}
-            <div className="absolute top-0 left-8 right-8 h-[1px]"
-              style={{ background: 'linear-gradient(90deg, transparent, rgba(245,158,11,0.4), transparent)' }} />
-
-            {/* Subtle inner glow */}
-            <div className="absolute top-0 left-0 right-0 h-40 opacity-30 pointer-events-none"
-              style={{ background: 'radial-gradient(ellipse at 50% -20%, rgba(245,158,11,0.15) 0%, transparent 70%)' }} />
-
-            {/* API Error */}
-            <AnimatePresence>
-              {error && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0, marginBottom: 0 }}
-                  animate={{ opacity: 1, height: 'auto', marginBottom: 20 }}
-                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-                  className="overflow-hidden"
-                >
-                  <div className="p-3 rounded-xl flex items-center gap-3"
-                    style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 shrink-0" />
-                    <p className="text-sm text-red-400" style={{ fontFamily: 'Barlow, sans-serif', fontWeight: 400 }}>
-                      {error.response?.data?.message || "Something went wrong"}
-                    </p>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}>
-                <Input label="Email" type="email" value={form.email} onChange={handleChange("email")} placeholder="you@example.com" error={errors.email} />
-              </motion.div>
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.4 }}>
-                <Input label="Password" type="password" value={form.password} onChange={handleChange("password")} placeholder="••••••••" error={errors.password} />
-              </motion.div>
-
-              {/* Forgot password */}
+          {/* API Error */}
+          <AnimatePresence>
+            {error && (
               <motion.div
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.45 }}
-                className="flex justify-end -mt-2"
+                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                animate={{ opacity: 1, height: 'auto', marginBottom: '20px' }}
+                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                style={{ overflow: 'hidden' }}
               >
-                <span className="text-xs text-amber-600/60 hover:text-amber-500 cursor-pointer transition-colors tracking-widest uppercase"
-                  style={{ fontFamily: 'Barlow, sans-serif' }}>
-                  Forgot Password?
-                </span>
+                <div style={{
+                  padding: '12px 16px',
+                  borderRadius: '12px',
+                  background: 'rgba(239,68,68,0.06)',
+                  border: '1px solid rgba(239,68,68,0.2)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                }}>
+                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#ef4444', flexShrink: 0 }} />
+                  <p style={{ fontFamily: 'Inter, sans-serif', fontSize: '14px', color: '#ef4444', margin: 0 }}>
+                    {error.response?.data?.message || "Something went wrong"}
+                  </p>
+                </div>
               </motion.div>
+            )}
+          </AnimatePresence>
 
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}>
-                <Button type="submit" loading={isPending} fullWidth>
-                  Enter the Arena
-                </Button>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {[
+              { field: 'email', label: 'Email', type: 'email', placeholder: 'you@example.com' },
+              { field: 'password', label: 'Password', type: 'password', placeholder: '••••••••' },
+            ].map(({ field, label, type, placeholder }, i) => (
+              <motion.div key={field} custom={i} variants={fieldVariants} initial="hidden" animate="visible">
+                <Input
+                  label={label}
+                  type={type}
+                  value={form[field]}
+                  onChange={handleChange(field)}
+                  placeholder={placeholder}
+                  error={errors[field]}
+                />
               </motion.div>
-            </form>
+            ))}
 
-            {/* Divider */}
-            <div className="flex items-center gap-3 my-6">
-              <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(90deg, transparent, rgba(245,158,11,0.15))' }} />
-              <span className="text-[10px] text-gray-700 tracking-[0.25em] uppercase" style={{ fontFamily: 'Barlow, sans-serif' }}>New Player?</span>
-              <div className="flex-1 h-[1px]" style={{ background: 'linear-gradient(90deg, rgba(245,158,11,0.15), transparent)' }} />
-            </div>
+            {/* Forgot password */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-4px' }}
+            >
+              <span style={{
+                fontFamily: 'Inter, sans-serif',
+                fontSize: '13px',
+                fontWeight: 500,
+                color: '#6a6a6a',
+                cursor: 'pointer',
+                textDecoration: 'underline',
+                textDecorationColor: 'transparent',
+                transition: 'color 0.2s, text-decoration-color 0.2s',
+              }}
+              onMouseEnter={e => { e.target.style.color = '#0a0a0a'; e.target.style.textDecorationColor = '#0a0a0a'; }}
+              onMouseLeave={e => { e.target.style.color = '#6a6a6a'; e.target.style.textDecorationColor = 'transparent'; }}
+              >
+                Forgot password?
+              </span>
+            </motion.div>
 
-            <p className="text-center text-sm text-gray-600" style={{ fontFamily: 'Barlow, sans-serif', fontWeight: 300 }}>
-              <Link to="/register">
-                <motion.span
-                  className="inline-block text-amber-500/80 hover:text-amber-400 transition-colors tracking-widest uppercase text-xs cursor-pointer"
-                  whileHover={{ letterSpacing: '0.35em' }}
-                  transition={{ duration: 0.3 }}
-                >
-                  Create Account →
-                </motion.span>
-              </Link>
-            </p>
-          </div>
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.55 }}
+            >
+              <Button type="submit" loading={isPending} fullWidth>
+                Sign in
+              </Button>
+            </motion.div>
+          </form>
+
+          {/* Divider */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.65 }}
+            style={{ display: 'flex', alignItems: 'center', gap: '12px', margin: '24px 0' }}
+          >
+            <div style={{ flex: 1, height: '1px', background: '#e5e5e5' }} />
+            <span style={{ fontFamily: 'Inter, sans-serif', fontSize: '12px', color: '#9a9a9a', fontWeight: 500 }}>
+              New here?
+            </span>
+            <div style={{ flex: 1, height: '1px', background: '#e5e5e5' }} />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.7 }}
+            style={{ textAlign: 'center' }}
+          >
+            <Link to="/register" style={{ textDecoration: 'none' }}>
+              <motion.span
+                style={{
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  color: '#0a0a0a',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                  padding: '8px 16px',
+                  borderRadius: '9999px',
+                  background: '#f5f0e0',
+                  transition: 'background 0.2s',
+                }}
+                whileHover={{ background: '#ebe6d6', scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                Create an account →
+              </motion.span>
+            </Link>
+          </motion.div>
         </motion.div>
 
-        {/* Bottom tagline */}
+        {/* Feature badges */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.85 }}
+          style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '20px', flexWrap: 'wrap' }}
+        >
+          {[
+            { label: '🎰 Instant Access', color: '#faf5e8' },
+            { label: '🏆 Leaderboards', color: '#faf5e8' },
+            { label: '🎁 Daily Rewards', color: '#faf5e8' },
+          ].map(({ label, color }) => (
+            <Badge key={label} color={color}>{label}</Badge>
+          ))}
+        </motion.div>
+
+        {/* Legal */}
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ delay: 0.7 }}
-          className="text-center text-[10px] text-gray-700 mt-6 tracking-[0.25em] uppercase"
-          style={{ fontFamily: 'Barlow, sans-serif' }}
+          transition={{ delay: 1 }}
+          style={{
+            textAlign: 'center',
+            fontFamily: 'Inter, sans-serif',
+            fontSize: '11px',
+            color: '#9a9a9a',
+            marginTop: '16px',
+            fontWeight: 500,
+          }}
         >
-          Play responsibly · 18+ only · Licensed & Secure
+          Play responsibly · 18+ only · Licensed &amp; Secure
         </motion.p>
-      </motion.div>
+      </div>
     </div>
   );
 };

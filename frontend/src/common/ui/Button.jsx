@@ -1,6 +1,11 @@
-import { motion } from 'framer-motion';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 
+/**
+ * Clay UI — Button
+ * Canvas: #fffaf0 | Ink: #0a0a0a | Inter 600 14px
+ * Variants: primary (ink), secondary (outlined cream), pink, teal, peach
+ */
 const Button = ({
   children,
   onClick,
@@ -19,110 +24,129 @@ const Button = ({
     const y = e.clientY - rect.top;
     const id = Date.now();
     setRipples((prev) => [...prev, { x, y, id }]);
-    setTimeout(() => setRipples((prev) => prev.filter((r) => r.id !== id)), 700);
+    setTimeout(() => setRipples((prev) => prev.filter((r) => r.id !== id)), 600);
   };
 
-  const variantStyles = {
+  const variants = {
     primary: {
-      wrapper: 'from-amber-500 via-yellow-500 to-amber-600',
-      inner: 'from-amber-400/20 via-yellow-300/10 to-transparent',
-      glow: 'rgba(245,158,11,0.4)',
-      text: 'text-black font-bold tracking-widest',
-      border: 'border-amber-400/50',
+      bg: '#0a0a0a',
+      border: '#0a0a0a',
+      color: '#ffffff',
+      hoverBg: '#1f1f1f',
+      ripple: 'rgba(255,255,255,0.12)',
     },
     secondary: {
-      wrapper: 'from-gray-700 via-gray-800 to-gray-900',
-      inner: 'from-white/10 via-white/5 to-transparent',
-      glow: 'rgba(255,255,255,0.1)',
-      text: 'text-white font-semibold tracking-wider',
-      border: 'border-gray-600/50',
+      bg: '#fffaf0',
+      border: '#e5e5e5',
+      color: '#0a0a0a',
+      hoverBg: '#f5f0e0',
+      ripple: 'rgba(10,10,10,0.06)',
     },
-    danger: {
-      wrapper: 'from-red-600 via-red-700 to-red-800',
-      inner: 'from-red-400/20 via-red-300/10 to-transparent',
-      glow: 'rgba(239,68,68,0.4)',
-      text: 'text-white font-bold tracking-widest',
-      border: 'border-red-500/50',
+    pink: {
+      bg: '#ff4d8b',
+      border: '#ff4d8b',
+      color: '#ffffff',
+      hoverBg: '#e6356e',
+      ripple: 'rgba(255,255,255,0.15)',
     },
-    success: {
-      wrapper: 'from-emerald-500 via-emerald-600 to-emerald-700',
-      inner: 'from-emerald-400/20 via-emerald-300/10 to-transparent',
-      glow: 'rgba(16,185,129,0.4)',
-      text: 'text-white font-bold tracking-widest',
-      border: 'border-emerald-500/50',
+    teal: {
+      bg: '#1a3a3a',
+      border: '#1a3a3a',
+      color: '#ffffff',
+      hoverBg: '#0f2525',
+      ripple: 'rgba(255,255,255,0.12)',
+    },
+    peach: {
+      bg: '#ffb084',
+      border: '#ffb084',
+      color: '#0a0a0a',
+      hoverBg: '#ffa070',
+      ripple: 'rgba(10,10,10,0.08)',
     },
   };
 
-  const style = variantStyles[variant] || variantStyles.primary;
+  const v = variants[variant] || variants.primary;
+  const [hovered, setHovered] = useState(false);
+  const isOff = disabled || loading;
 
   return (
     <motion.button
       type={type}
       onClick={(e) => {
+        if (isOff) return;
         addRipple(e);
         onClick?.(e);
       }}
-      disabled={disabled || loading}
-      whileTap={{ scale: 0.97 }}
-      whileHover={{ scale: disabled || loading ? 1 : 1.01 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      className={`
-        relative overflow-hidden
-        ${fullWidth ? 'w-full' : ''}
-        disabled:opacity-40 disabled:cursor-not-allowed disabled:scale-100
-        outline-none focus-visible:ring-2 focus-visible:ring-amber-500/50
-        rounded-xl
-        ${className}
-      `}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      disabled={isOff}
+      whileTap={{ scale: isOff ? 1 : 0.97 }}
+      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+      className={`relative overflow-hidden outline-none ${fullWidth ? 'w-full' : ''} ${className}`}
       style={{
-        filter: disabled || loading ? 'none' : undefined,
+        background: hovered && !isOff ? v.hoverBg : isOff ? '#e5e5e5' : v.bg,
+        border: `1px solid ${isOff ? '#e5e5e5' : v.border}`,
+        borderRadius: '12px',
+        padding: '0',
+        cursor: isOff ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.6 : 1,
+        transition: 'background 0.2s ease, border-color 0.2s ease',
+        height: '44px',
       }}
     >
-      {/* Outer glow */}
-      <motion.div
-        className="absolute -inset-[1px] rounded-xl opacity-0 pointer-events-none"
-        whileHover={{ opacity: disabled || loading ? 0 : 1 }}
-        transition={{ duration: 0.2 }}
-        style={{
-          background: `linear-gradient(135deg, ${style.glow}, transparent, ${style.glow})`,
-          filter: 'blur(4px)',
-        }}
-      />
-
-      {/* Gradient background */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${style.wrapper} rounded-xl`} />
-
-      {/* Inner highlight */}
-      <div className={`absolute inset-0 bg-gradient-to-b ${style.inner} rounded-xl`} />
-
-      {/* Top shine line */}
-      <div className="absolute top-0 left-6 right-6 h-[1px] bg-white/30 rounded-full" />
-
-      {/* Border */}
-      <div className={`absolute inset-0 rounded-xl border ${style.border}`} />
-
       {/* Ripples */}
       {ripples.map((r) => (
         <motion.span
           key={r.id}
-          className="absolute rounded-full bg-white/20 pointer-events-none"
-          style={{ left: r.x, top: r.y, x: '-50%', y: '-50%' }}
-          initial={{ width: 0, height: 0, opacity: 0.6 }}
-          animate={{ width: 200, height: 200, opacity: 0 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
+          style={{
+            position: 'absolute',
+            left: r.x,
+            top: r.y,
+            x: '-50%',
+            y: '-50%',
+            borderRadius: '50%',
+            background: v.ripple,
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+          initial={{ width: 0, height: 0, opacity: 0.8 }}
+          animate={{ width: 280, height: 280, opacity: 0 }}
+          transition={{ duration: 0.55, ease: 'easeOut' }}
         />
       ))}
 
       {/* Content */}
-      <div className={`relative px-6 py-3.5 flex items-center justify-center gap-2 text-sm uppercase ${style.text}`}>
+      <div
+        style={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '8px',
+          padding: '0 20px',
+          fontFamily: 'Inter, sans-serif',
+          fontSize: '14px',
+          fontWeight: 600,
+          letterSpacing: '0',
+          color: isOff ? '#6a6a6a' : v.color,
+        }}
+      >
         {loading ? (
           <>
             <motion.span
-              className="w-4 h-4 rounded-full border-2 border-current border-t-transparent"
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                border: `2px solid ${v.color}`,
+                borderTopColor: 'transparent',
+                display: 'inline-block',
+              }}
               animate={{ rotate: 360 }}
               transition={{ duration: 0.7, repeat: Infinity, ease: 'linear' }}
             />
-            <span className="tracking-widest">Processing...</span>
+            <span>Processing…</span>
           </>
         ) : (
           children

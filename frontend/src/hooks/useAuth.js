@@ -14,7 +14,7 @@ export const useLogin = () => {
     onSuccess: (response) => {
       const { accessToken, user } = response.data.data;
       setAuth(user, accessToken);
-      navigate("/");
+      navigate("/app");
     },
   });
 };
@@ -29,7 +29,7 @@ export const useRegister = () => {
     onsuccess: (response) => {
       const { accessToken, user } = response.data.data;
       setAuth(user, accessToken);
-      navigate("/");
+      navigate("/app");
     },
   });
 };

@@ -17,32 +17,30 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route 
-        path='/landing'
-        element = {<LandingPage /> }
-        />
+        {/* Public landing page */}
+        <Route path="/" element={<LandingPage />} />
 
 
         {/* Public routes — redirect to dashboard if already logged in */}
         <Route
           path="/login"
-          element={user ? <Navigate to="/" replace /> : <LoginPage />}
+          element={user ? <Navigate to="/app" replace /> : <LoginPage />}
         />
         <Route
           path="/register"
-          element={user ? <Navigate to="/" replace /> : <RegisterPage />}
+          element={user ? <Navigate to="/app" replace /> : <RegisterPage />}
         />
 
         {/* Protected routes — all wrapped in MainLayout */}
         <Route
-          path="/"
+          path="/app"
           element={
             <ProtectedRoute>
               <MainLayout />
             </ProtectedRoute>
           }
         >
-          {/* index = default child route at "/" */}
+          {/* index = default child route at "/app" */}
           <Route index element={<DashboardPage />} />
           <Route path="dice"    element={<DicePage />} />
           <Route path="coinflip" element={<CoinflipPage />} />

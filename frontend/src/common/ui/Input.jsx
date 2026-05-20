@@ -1,73 +1,73 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+/**
+ * Clay UI — Input
+ * Canvas: #fffaf0 | Hairline: #e5e5e5 | Focus: ink border
+ * Floating label, cream background, 12px rounded
+ */
 const Input = ({ label, type = 'text', value, onChange, placeholder, error }) => {
   const [focused, setFocused] = useState(false);
   const hasValue = value && value.length > 0;
+  const lifted = focused || hasValue;
 
   return (
-    <div className="relative flex flex-col gap-1">
-      <div className="relative group">
-        {/* Animated glow border */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+      <div style={{ position: 'relative' }}>
+        {/* Focus ring — ink outline */}
         <motion.div
-          className="absolute -inset-[1px] rounded-xl opacity-0 pointer-events-none"
-          animate={{
-            opacity: focused ? 1 : 0,
-            background: error
-              ? 'linear-gradient(135deg, #ef4444, #dc2626)'
-              : 'linear-gradient(135deg, #f59e0b, #d97706, #b45309)',
+          style={{
+            position: 'absolute',
+            inset: '-2px',
+            borderRadius: '14px',
+            pointerEvents: 'none',
+            border: '2px solid',
           }}
-          transition={{ duration: 0.3 }}
-          style={{ filter: focused ? 'blur(0px)' : 'blur(4px)' }}
+          animate={{
+            borderColor: error
+              ? '#ef4444'
+              : focused
+              ? '#0a0a0a'
+              : 'transparent',
+            opacity: error ? 1 : focused ? 1 : 0,
+          }}
+          transition={{ duration: 0.2 }}
         />
 
-        {/* Inner container */}
+        {/* Field box */}
         <div
-          className={`
-            relative rounded-xl overflow-hidden
-            transition-all duration-300
-            ${error
-              ? 'shadow-[0_0_20px_rgba(239,68,68,0.15)]'
-              : focused
-                ? 'shadow-[0_0_30px_rgba(245,158,11,0.2)]'
-                : 'shadow-none'
-            }
-          `}
+          style={{
+            position: 'relative',
+            background: '#fffaf0',
+            border: `1px solid ${error ? '#ef4444' : focused ? '#0a0a0a' : '#e5e5e5'}`,
+            borderRadius: '12px',
+            height: '56px',
+            overflow: 'hidden',
+            transition: 'border-color 0.2s ease',
+          }}
         >
-          {/* Background layers */}
-          <div className="absolute inset-0 bg-[#0a0a0f] rounded-xl" />
-          <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent rounded-xl" />
-
-          {/* Animated top highlight */}
-          <motion.div
-            className="absolute top-0 left-4 right-4 h-[1px]"
-            animate={{
-              background: error
-                ? 'linear-gradient(90deg, transparent, rgba(239,68,68,0.6), transparent)'
-                : focused
-                  ? 'linear-gradient(90deg, transparent, rgba(245,158,11,0.8), transparent)'
-                  : 'linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent)',
-            }}
-            transition={{ duration: 0.3 }}
-          />
-
+          {/* Floating label */}
           {label && (
             <motion.label
-              className="absolute left-4 font-medium tracking-wide pointer-events-none z-10"
-              animate={{
-                top: focused || hasValue ? '8px' : '50%',
-                y: focused || hasValue ? '0%' : '-50%',
-                fontSize: focused || hasValue ? '10px' : '14px',
-                color: error
-                  ? '#f87171'
-                  : focused
-                    ? '#f59e0b'
-                    : '#6b7280',
-                letterSpacing: focused || hasValue ? '0.08em' : '0em',
+              style={{
+                position: 'absolute',
+                left: '16px',
+                pointerEvents: 'none',
+                zIndex: 2,
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 500,
+                transformOrigin: 'left center',
               }}
-              transition={{ duration: 0.2, ease: 'easeOut' }}
+              animate={{
+                top: lifted ? '8px' : '50%',
+                y: lifted ? '0%' : '-50%',
+                fontSize: lifted ? '10px' : '14px',
+                letterSpacing: lifted ? '0.08em' : '0',
+                color: error ? '#ef4444' : focused ? '#0a0a0a' : '#9a9a9a',
+              }}
+              transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
             >
-              {label.toUpperCase()}
+              {lifted ? label.toUpperCase() : label}
             </motion.label>
           )}
 
@@ -75,30 +75,39 @@ const Input = ({ label, type = 'text', value, onChange, placeholder, error }) =>
             type={type}
             value={value}
             onChange={onChange}
-            placeholder={focused || hasValue ? '' : placeholder}
+            placeholder={lifted ? '' : placeholder}
             onFocus={() => setFocused(true)}
             onBlur={() => setFocused(false)}
-            className={`
-              relative w-full bg-transparent text-white
-              px-4 pb-3 outline-none z-10
-              font-light tracking-wide text-[15px]
-              placeholder-gray-700
-              transition-all duration-200
-              ${label ? 'pt-6' : 'pt-3'}
-            `}
+            style={{
+              position: 'relative',
+              zIndex: 1,
+              width: '100%',
+              height: '100%',
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
+              padding: label ? '24px 16px 8px' : '0 16px',
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '15px',
+              fontWeight: 400,
+              color: '#0a0a0a',
+              letterSpacing: '0',
+            }}
           />
 
-          {/* Bottom border line */}
-          <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gray-800" />
+          {/* Bottom accent line on focus */}
           <motion.div
-            className="absolute bottom-0 left-0 h-[1px]"
-            animate={{
-              width: focused ? '100%' : '0%',
-              background: error
-                ? '#ef4444'
-                : 'linear-gradient(90deg, #f59e0b, #d97706)',
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              height: '2px',
+              background: error ? '#ef4444' : '#0a0a0a',
+              transformOrigin: 'left',
             }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
+            animate={{ scaleX: focused ? 1 : 0 }}
+            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+            initial={{ scaleX: 0 }}
           />
         </div>
       </div>
@@ -110,13 +119,27 @@ const Input = ({ label, type = 'text', value, onChange, placeholder, error }) =>
             initial={{ opacity: 0, y: -4, height: 0 }}
             animate={{ opacity: 1, y: 0, height: 'auto' }}
             exit={{ opacity: 0, y: -4, height: 0 }}
-            transition={{ duration: 0.2 }}
-            className="flex items-center gap-1.5 px-1"
+            transition={{ duration: 0.18 }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              paddingLeft: '4px',
+              overflow: 'hidden',
+            }}
           >
-            <svg className="w-3 h-3 text-red-500 shrink-0" viewBox="0 0 16 16" fill="currentColor">
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="#ef4444" style={{ flexShrink: 0 }}>
               <path d="M8 1a7 7 0 100 14A7 7 0 008 1zm0 3a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 018 4zm0 8a1 1 0 110-2 1 1 0 010 2z"/>
             </svg>
-            <span className="text-[11px] text-red-400 tracking-wide">{error}</span>
+            <span style={{
+              fontFamily: 'Inter, sans-serif',
+              fontSize: '12px',
+              fontWeight: 500,
+              color: '#ef4444',
+              letterSpacing: '0',
+            }}>
+              {error}
+            </span>
           </motion.div>
         )}
       </AnimatePresence>
