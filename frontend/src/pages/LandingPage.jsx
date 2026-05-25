@@ -1,348 +1,262 @@
-import { useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform } from "framer-motion";
+import {
+  Dice5, Coins, Bomb, TrendingUp, 
+  Shield, Zap, Lock, ArrowRight, ArrowUpRight,
+  Play,
+} from "lucide-react";
+import Footer from "../components/Footer";
+import PublicNavbar from "../components/PublicNavbar";
+import diceImage from "../assets/Dice.jpeg";
+import mineImage from "../assets/Mine.jpeg";
+import crashImage from "../assets/Crash.jpeg";
+import coinflipVideo from "../assets/coinflip.mp4";
 
-/* ─── DESIGN TOKENS ─── */
-const C = {
-  bg:           '#040605',
-  bgElevated:   '#080c0a',
-  bgCard:       '#0d1410',
-  bgSubtle:     '#111a14',
-  surface:      '#161e18',
-  border:       'rgba(85,211,150,0.08)',
-  borderMid:    'rgba(85,211,150,0.15)',
-  borderStrong: 'rgba(85,211,150,0.28)',
-  green:        '#55D396',
-  greenDeep:    '#169A50',
-  greenMuted:   'rgba(85,211,150,0.5)',
-  greenDim:     'rgba(85,211,150,0.12)',
-  white:        '#FFFFFF',
-  offWhite:     '#E8EDE9',
-  muted:        '#6B7B6E',
-  faint:        '#3A4A3D',
-  ink:          '#272C2A',
-};
-
-const FONT_DISPLAY = `'General Sans', 'DM Sans', sans-serif`;
-const FONT_BODY    = `'Barlow', 'Inter', sans-serif`;
-
-/* ─── TICKER ─── */
-const TICKER = ['Provably Fair','Instant Settlement','1 000 Free Coins','5 Live Games','Zero Deposit','SSL Encrypted','99.2% Uptime'];
-
-const Ticker = () => (
-  <div style={{ overflow:'hidden', borderTop:`1px solid ${C.border}`, borderBottom:`1px solid ${C.border}`, padding:'12px 0', backgroundColor: C.bgElevated }}>
-    <motion.div
-      animate={{ x:['0%','-50%'] }}
-      transition={{ duration:32, repeat:Infinity, ease:'linear' }}
-      style={{ display:'flex', width:'max-content' }}
-    >
-      {[...TICKER,...TICKER].map((t,i) => (
-        <span key={i} style={{ display:'inline-flex', alignItems:'center', gap:20, padding:'0 24px', whiteSpace:'nowrap', fontFamily:FONT_BODY, fontSize:11, fontWeight:500, letterSpacing:'1.8px', textTransform:'uppercase', color: C.muted }}>
-          {t}
-          <span style={{ color: C.green, fontSize:4 }}>●</span>
-        </span>
-      ))}
-    </motion.div>
-  </div>
-);
-
-/* ─── LIVE BADGE ─── */
-const LiveBadge = () => (
-  <span style={{ display:'inline-flex', alignItems:'center', gap:8, padding:'6px 14px', borderRadius:9999, border:`1px solid ${C.borderMid}`, backgroundColor: C.greenDim, fontFamily:FONT_BODY, fontSize:12, fontWeight:500, letterSpacing:'0.5px', color: C.green }}>
-    <motion.span
-      animate={{ opacity:[1,0.2,1] }}
-      transition={{ duration:1.8, repeat:Infinity }}
-      style={{ width:6, height:6, borderRadius:'50%', backgroundColor: C.green, display:'inline-block' }}
-    />
-    5 games live
-  </span>
-);
-
-/* ─── STAT ─── */
-const Stat = ({ value, label, delay:d }) => {
-  const ref   = useRef(null);
-  const [go, setGo] = useState(false);
-  const [out, setOut] = useState('0');
-  const num    = parseFloat(value.replace(/[^0-9.]/g,''));
-  const suffix = value.replace(/[0-9.,]/g,'');
-
-  const observe = () => {
-    const io = new IntersectionObserver(([e]) => { if(e.isIntersecting && !go) setGo(true); }, { threshold:0.5 });
-    if(ref.current) io.observe(ref.current); return () => io.disconnect();
-  };
-  // eslint-disable-next-line
-  typeof window !== 'undefined' && useRef(observe);
-
-  useState(() => {
-    if(!go) return;
-    const dur=1800, s=performance.now();
-    const tick=(n)=>{ const p=Math.min((n-s)/dur,1); const e=1-Math.pow(1-p,3); setOut(Math.floor(e*num).toLocaleString()+suffix); if(p<1) requestAnimationFrame(tick); else setOut(value); };
-    requestAnimationFrame(tick);
-  }, [go]);
-
+const TICKER = ["Provably Fair","Instant Settlement","1,000 Free Coins","Zero Deposit","SSL Encrypted","99.2% Uptime"];
+function Ticker() {
   return (
-    <motion.div ref={ref} initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{delay:d,duration:0.7,ease:[0.16,1,0.3,1]}} style={{textAlign:'center'}}>
-      <div style={{ fontFamily:FONT_DISPLAY, fontSize:36, fontWeight:600, color: C.white, letterSpacing:'-1.5px', lineHeight:1 }}>{value}</div>
-      <div style={{ fontFamily:FONT_BODY, fontSize:11, fontWeight:500, letterSpacing:'1.6px', textTransform:'uppercase', color: C.muted, marginTop:10 }}>{label}</div>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.6 }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      className="border-y border-emerald-400/10 bg-emerald-950/20 overflow-hidden"
+    >
+      <div className="flex gap-12 py-3 animate-[scroll_40s_linear_infinite] whitespace-nowrap">
+        {[...TICKER, ...TICKER, ...TICKER].map((t, i) => (
+          <motion.span
+            key={i}
+            initial={{ opacity: 0.6 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: (i % 6) * 0.04 }}
+            className="flex items-center gap-4 font-mono text-[11px] uppercase tracking-[0.25em] text-emerald-300/70"
+          >
+            {t}
+            <span className="text-emerald-400/40">●</span>
+          </motion.span>
+        ))}
+      </div>
     </motion.div>
   );
-};
+}
 
-/* ─── GAME CARD ─── */
 const GAMES = [
-  { id:'dice',     label:'Dice',     sub:'Roll. Risk. Repeat.',     tag:'Live',   accent:'#55D396' },
-  { id:'coinflip', label:'Coinflip', sub:'Heads or tails — fast',   tag:'Quick',  accent:'#169A50' },
-  { id:'mines',    label:'Mines',    sub:'Navigate the field',      tag:'Hot',    accent:'#55D396' },
-  { id:'crash',    label:'Crash',    sub:'Exit before collapse',     tag:'Risk',   accent:'#169A50' },
-  { id:'soon',     label:'Soon',     sub:'Something new stirs',     tag:'Soon',   accent:'#272C2A' },
+  { id: "dice", label: "Dice", sub: "Roll. Risk. Repeat.", tag: "Live", Icon: Dice5, image: diceImage },
+  { id: "coinflip", label: "Coinflip", sub: "Heads or tails — instant.", tag: "Quick", Icon: Coins, video: coinflipVideo },
+  { id: "mines", label: "Mines", sub: "Navigate the field.", tag: "Hot", Icon: Bomb, image: mineImage },
+  { id: "crash", label: "Crash", sub: "Exit before the collapse.", tag: "Risk", Icon: TrendingUp, image: crashImage },
 ];
 
-const GameCard = ({ game, delay:d }) => {
-  const [hov, setHov] = useState(false);
+function GameCard({ game, i }) {
+  const { Icon, image, video } = game;
+  return (
+    <motion.a
+      href="#"
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.3 }}
+      transition={{ duration: 0.6, delay: i * 0.08, ease: [0.16, 1, 0.3, 1] }}
+      whileHover={{ y: -6 }}
+      className="group relative overflow-hidden rounded-2xl border border-emerald-400/10 bg-gradient-to-b from-emerald-950/30 to-black p-8 min-h-80 md:min-h-96 transition-all duration-500 hover:border-emerald-400/40"
+    >
+      {(image || video) && (
+        <div className="pointer-events-none absolute inset-0">
+          {video ? (
+            <video
+              className="h-full w-full object-cover opacity-80"
+              src={video}
+              autoPlay
+              muted
+              loop
+              playsInline
+            />
+          ) : (
+            <img
+              src={image}
+              alt=""
+              className="h-full w-full object-cover opacity-85"
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/20" />
+        </div>
+      )}
+      <div className="pointer-events-none absolute -top-20 -right-20 h-48 w-48 rounded-full bg-emerald-400/20 blur-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(85,211,150,0.4)_1px,transparent_1px),linear-gradient(90deg,rgba(85,211,150,0.4)_1px,transparent_1px)] [background-size:24px_24px]" />
+
+      <div className="relative flex items-start justify-between">
+        <span className="font-mono text-[10px] uppercase tracking-[0.3em] text-emerald-300/80 drop-shadow">{game.tag}</span>
+        <ArrowUpRight className="size-4 text-emerald-300/50 transition-transform duration-500 group-hover:rotate-45 group-hover:text-emerald-300" />
+      </div>
+
+      {!image && !video && (
+        <div className="relative my-12 flex items-center justify-center">
+          <motion.div
+            whileHover={{ rotate: 8, scale: 1.05 }}
+            transition={{ type: "spring", stiffness: 200 }}
+            className="relative flex size-24 items-center justify-center rounded-2xl border border-emerald-400/20 bg-black/40 backdrop-blur"
+          >
+            <Icon className="size-10 text-emerald-300" strokeWidth={1.2} />
+            <div className="absolute inset-0 rounded-2xl ring-1 ring-emerald-400/0 group-hover:ring-emerald-400/30 transition" />
+          </motion.div>
+        </div>
+      )}
+
+      <div className="relative">
+        <h3 className="font-serif text-3xl text-white tracking-tight drop-shadow">{game.label}</h3>
+        <p className="mt-1 text-sm text-zinc-200/80 drop-shadow">{game.sub}</p>
+        <div className="mt-5 flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.25em] text-emerald-200 drop-shadow">
+          Play now
+          <ArrowRight className="size-3.5 transition-transform duration-300 group-hover:translate-x-1" />
+        </div>
+      </div>
+    </motion.a>
+  );
+}
+
+function Step({ num, title, desc, i }) {
   return (
     <motion.div
-      initial={{opacity:0,y:32}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
-      transition={{delay:d,duration:0.6,ease:[0.16,1,0.3,1]}}
-      onMouseEnter={()=>setHov(true)} onMouseLeave={()=>setHov(false)}
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.4 }}
+      transition={{ duration: 0.6, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      className="group relative rounded-2xl border border-emerald-400/10 bg-emerald-950/10 p-8 transition-colors hover:border-emerald-400/30"
     >
-      <motion.div
-        animate={{ y: hov ? -6 : 0 }}
-        transition={{duration:0.3,ease:[0.16,1,0.3,1]}}
-        style={{
-          padding:'28px 24px', borderRadius:16, cursor:'pointer',
-          backgroundColor: hov ? C.bgSubtle : C.bgCard,
-          border:`1px solid ${hov ? C.borderMid : C.border}`,
-          transition:'background 0.25s, border-color 0.25s',
-          aspectRatio:'3/4', display:'flex', flexDirection:'column', justifyContent:'space-between',
-        }}
-      >
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
-          <span style={{ fontFamily:FONT_BODY, fontSize:10, fontWeight:600, letterSpacing:'1.8px', textTransform:'uppercase', color: game.accent, padding:'4px 10px', border:`1px solid ${game.accent}30`, borderRadius:9999 }}>{game.tag}</span>
-          <motion.div animate={{ rotate: hov ? 45 : 0 }} transition={{duration:0.25}} style={{ color: C.faint, fontSize:16 }}>+</motion.div>
-        </div>
-
-        <div style={{ textAlign:'center', fontSize:48, opacity: game.id==='soon' ? 0.3 : 0.9 }}>
-          {game.id==='dice'?'⚄': game.id==='coinflip'?'◉': game.id==='mines'?'⊛': game.id==='crash'?'◈':'?'}
-        </div>
-
-        <div>
-          <div style={{ fontFamily:FONT_DISPLAY, fontSize:22, fontWeight:600, letterSpacing:'-0.5px', color: C.white, marginBottom:4 }}>{game.label}</div>
-          <div style={{ fontFamily:FONT_BODY, fontSize:13, color: C.muted, marginBottom:12 }}>{game.sub}</div>
-          <motion.div animate={{ opacity: hov ? 1 : 0, x: hov ? 0 : -6 }} transition={{duration:0.2}}
-            style={{ fontFamily:FONT_BODY, fontSize:12, fontWeight:600, letterSpacing:'0.5px', color: C.green }}>Play now →</motion.div>
-        </div>
-      </motion.div>
+      <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-emerald-300/60">Step {num}</div>
+      <div className="absolute right-6 top-6 font-serif italic text-6xl text-emerald-400/10 transition-colors group-hover:text-emerald-400/30">{num}</div>
+      <h4 className="mt-6 font-serif text-2xl text-white">{title}</h4>
+      <p className="mt-3 text-sm leading-relaxed text-zinc-400">{desc}</p>
     </motion.div>
   );
-};
+}
 
-/* ─── STEP ─── */
-const Step = ({ num, title, desc, delay:d }) => (
-  <motion.div
-    initial={{opacity:0,y:28}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
-    transition={{delay:d,duration:0.65,ease:[0.16,1,0.3,1]}}
-    style={{ padding:'36px 32px', backgroundColor: C.bgCard, border:`1px solid ${C.border}`, borderRadius:16, position:'relative', overflow:'hidden' }}
-  >
-    <div style={{ fontFamily:FONT_DISPLAY, fontSize:80, fontWeight:700, color:'rgba(85,211,150,0.04)', position:'absolute', top:-10, right:16, lineHeight:1 }}>{num}</div>
-    <div style={{ fontFamily:FONT_BODY, fontSize:10, fontWeight:600, letterSpacing:'2px', textTransform:'uppercase', color: C.green, marginBottom:14 }}>{num}</div>
-    <div style={{ fontFamily:FONT_DISPLAY, fontSize:20, fontWeight:600, letterSpacing:'-0.3px', color: C.white, marginBottom:10 }}>{title}</div>
-    <div style={{ fontFamily:FONT_BODY, fontSize:14, color: C.muted, lineHeight:1.65 }}>{desc}</div>
-  </motion.div>
-);
+function SectionHead({ eyebrow, title }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.5 }}
+      transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+      className="mb-16 flex flex-col gap-4 md:flex-row md:items-end md:justify-between"
+    >
+      <div>
+        <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.3em] text-emerald-300">
+          <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+          {eyebrow}
+        </div>
+        <h2 className="mt-4 font-serif text-5xl md:text-6xl text-white tracking-tight leading-[0.95] max-w-3xl">{title}</h2>
+      </div>
+      <div className="h-px flex-1 md:max-w-xs bg-gradient-to-r from-emerald-400/40 to-transparent" />
+    </motion.div>
+  );
+}
 
-/* ─── SECTION HEADING ─── */
-const SectionHead = ({ eyebrow, title }) => (
-  <motion.div initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.65,ease:[0.16,1,0.3,1]}} style={{marginBottom:64}}>
-    <div style={{ fontFamily:FONT_BODY, fontSize:11, fontWeight:600, letterSpacing:'2.2px', textTransform:'uppercase', color: C.green, marginBottom:16 }}>{eyebrow}</div>
-    <div style={{ fontFamily:FONT_DISPLAY, fontSize:48, fontWeight:600, letterSpacing:'-2px', color: C.white, lineHeight:1.05 }}>{title}</div>
-    <motion.div initial={{width:0}} whileInView={{width:36}} viewport={{once:true}} transition={{duration:0.7,delay:0.2,ease:[0.16,1,0.3,1]}} style={{ height:2, backgroundColor: C.green, borderRadius:9999, marginTop:24 }} />
-  </motion.div>
-);
-
-/* ─── MAIN ─── */
-const LandingPage = () => {
-  const { scrollY }  = useScroll();
-  const heroY        = useTransform(scrollY,[0,700],[0,-60]);
-  const heroOpacity  = useTransform(scrollY,[0,400],[1,0]);
+function LandingPage() {
+  const { scrollY } = useScroll();
+  const heroY = useTransform(scrollY, [0, 700], [0, -80]);
+  const heroOpacity = useTransform(scrollY, [0, 500], [1, 0]);
 
   return (
-    <div style={{ backgroundColor: C.bg, color: C.white, minHeight:'100vh', overflowX:'hidden', fontFamily:FONT_BODY }}>
+    <div
+      className="min-h-screen bg-black text-zinc-200 antialiased selection:bg-emerald-400/30 selection:text-emerald-200"
+      style={{ fontFamily: "'Geist', ui-sans-serif, system-ui" }}
+    >
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&display=swap');
-        @import url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap');
-        *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-        ::selection { background:rgba(85,211,150,0.2); color:#55D396; }
-        ::-webkit-scrollbar { width:3px; }
-        ::-webkit-scrollbar-track { background:${C.bg}; }
-        ::-webkit-scrollbar-thumb { background:${C.faint}; border-radius:2px; }
-        a { text-decoration:none; }
+        @keyframes scroll { from { transform: translateX(0) } to { transform: translateX(-33.333%) } }
+        .font-serif { font-family: 'Instrument Serif', ui-serif, Georgia, serif; }
+        .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
       `}</style>
 
-      {/* NAV */}
-      <motion.nav
-        initial={{y:-60,opacity:0}} animate={{y:0,opacity:1}} transition={{duration:0.6,ease:[0.16,1,0.3,1]}}
-        style={{ position:'sticky', top:0, zIndex:100, height:64, borderBottom:`1px solid ${C.border}`, backgroundColor: 'rgba(4,6,5,0.92)', backdropFilter:'blur(20px)' }}
-      >
-        <div style={{ maxWidth:1280, margin:'0 auto', padding:'0 40px', height:64, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-            <div style={{ width:28, height:28, border:`1px solid ${C.borderStrong}`, borderRadius:7, display:'flex', alignItems:'center', justifyContent:'center', backgroundColor: C.greenDim }}>
-              <div style={{ width:8, height:8, backgroundColor: C.green, borderRadius:2 }}/>
-            </div>
-            <span style={{ fontFamily:FONT_DISPLAY, fontSize:17, fontWeight:600, letterSpacing:'-0.3px', color: C.white }}>Vexora</span>
-          </div>
-
-          <div style={{ display:'flex', gap:32 }}>
-            {['Games','Leaderboard','Promotions','About'].map(item => (
-              <span key={item} style={{ fontFamily:FONT_BODY, fontSize:14, fontWeight:400, color: C.muted, cursor:'pointer', transition:'color 0.15s', letterSpacing:'0.1px' }}
-                onMouseEnter={e=>e.currentTarget.style.color=C.offWhite}
-                onMouseLeave={e=>e.currentTarget.style.color=C.muted}
-              >{item}</span>
-            ))}
-          </div>
-
-          <div style={{ display:'flex', gap:12, alignItems:'center' }}>
-            <Link to="/login">
-              <span style={{ fontFamily:FONT_BODY, fontSize:14, fontWeight:400, color: C.muted, cursor:'pointer', transition:'color 0.15s' }}
-                onMouseEnter={e=>e.currentTarget.style.color=C.offWhite}
-                onMouseLeave={e=>e.currentTarget.style.color=C.muted}
-              >Sign in</span>
-            </Link>
-            <Link to="/register">
-              <motion.button
-                whileHover={{scale:1.03}} whileTap={{scale:0.97}}
-                style={{ display:'inline-flex', alignItems:'center', height:38, padding:'0 18px', backgroundColor: C.green, color: C.bg, border:'none', borderRadius:9, cursor:'pointer', fontFamily:FONT_BODY, fontSize:13, fontWeight:600, letterSpacing:'0.2px' }}
-              >Try free</motion.button>
-            </Link>
-          </div>
-        </div>
-      </motion.nav>
+      <PublicNavbar />
 
       {/* HERO */}
-      <section style={{ position:'relative', minHeight:'90vh', display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
-        {/* BG grid */}
-        <div style={{ position:'absolute', inset:0, backgroundImage:`linear-gradient(rgba(85,211,150,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(85,211,150,0.03) 1px, transparent 1px)`, backgroundSize:'48px 48px', pointerEvents:'none' }} />
-        {/* Glow */}
-        <div style={{ position:'absolute', top:'20%', left:'50%', transform:'translateX(-50%)', width:600, height:300, background:'radial-gradient(ellipse, rgba(85,211,150,0.07) 0%, transparent 70%)', pointerEvents:'none' }} />
+      <section className="relative overflow-hidden pt-32 pb-24">
+        <div className="pointer-events-none absolute inset-0 opacity-[0.05] [background-image:linear-gradient(rgba(85,211,150,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(85,211,150,0.5)_1px,transparent_1px)] [background-size:60px_60px] [mask-image:radial-gradient(ellipse_at_center,black_30%,transparent_75%)]" />
+        <div className="pointer-events-none absolute left-1/2 top-1/4 -translate-x-1/2 size-[700px] rounded-full bg-emerald-500/20 blur-[140px]" />
+        <div className="pointer-events-none absolute right-0 top-0 size-[400px] rounded-full bg-emerald-400/10 blur-[120px]" />
 
-        <motion.div style={{ y:heroY, opacity:heroOpacity, position:'relative', zIndex:2, textAlign:'center', maxWidth:800, margin:'0 auto', padding:'0 40px' }}>
-          <motion.div initial={{opacity:0,y:-16}} animate={{opacity:1,y:0}} transition={{duration:0.5}} style={{marginBottom:24,display:'flex',justifyContent:'center'}}>
-            <LiveBadge />
-          </motion.div>
-
-          <motion.div initial={{opacity:0,y:-8}} animate={{opacity:1,y:0}} transition={{duration:0.7,delay:0.08}}>
-            <div style={{ fontFamily:FONT_BODY, fontSize:11, fontWeight:600, letterSpacing:'2.5px', textTransform:'uppercase', color: C.muted, marginBottom:20 }}>Vexora · The Premium Gaming Arena</div>
-          </motion.div>
-
-          <motion.h1
-            initial={{opacity:0,y:28}} animate={{opacity:1,y:0}} transition={{duration:0.75,delay:0.18,ease:[0.16,1,0.3,1]}}
-            style={{ fontFamily:FONT_DISPLAY, fontSize:'clamp(52px,8vw,80px)', fontWeight:600, letterSpacing:'-3.5px', lineHeight:0.95, color: C.white, margin:`0 0 28px` }}
-          >
-            Where winners<br/>
-            <motion.span
-              animate={{ color:[C.green,'#a4e8c4',C.green] }}
-              transition={{ duration:4, repeat:Infinity, ease:'easeInOut' }}
-            >dare to play</motion.span>
+        <motion.div style={{ y: heroY, opacity: heroOpacity }} className="relative mx-auto max-w-6xl px-6 text-center">
+          <motion.h1 initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+            className="mt-8 font-serif text-[clamp(3.5rem,10vw,9rem)] leading-[0.9] tracking-tight text-white">
+            Where winners
+            <br />
+            <span className="italic text-emerald-300">dare to play.</span>
           </motion.h1>
 
-          <motion.p initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{duration:0.65,delay:0.34}}
-            style={{ fontFamily:FONT_BODY, fontSize:16, fontWeight:300, color: C.muted, maxWidth:440, margin:`0 auto 44px`, lineHeight:1.7 }}
-          >
-            Five electrifying games. Real-time thrills. Zero risk.<br/>
-            Start with <strong style={{ color: C.offWhite, fontWeight:500 }}>1,000 free coins</strong> — no deposit, no card ever.
+          <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.35 }}
+            className="mx-auto mt-8 max-w-xl text-base md:text-lg text-zinc-400 leading-relaxed">
+            Five electrifying games. Real-time thrills. Zero risk. Start with{" "}
+            <span className="text-emerald-300">1,000 free coins</span> — no deposit, no card, ever.
           </motion.p>
 
-          <motion.div initial={{opacity:0,y:14}} animate={{opacity:1,y:0}} transition={{duration:0.6,delay:0.48}}
-            style={{ display:'flex', gap:12, justifyContent:'center', flexWrap:'wrap' }}
-          >
-            <Link to="/register">
-              <motion.button
-                whileHover={{scale:1.04}} whileTap={{scale:0.96}}
-                style={{ display:'inline-flex', alignItems:'center', height:48, padding:'0 28px', backgroundColor: C.green, color: C.bg, border:'none', borderRadius:10, cursor:'pointer', fontFamily:FONT_DISPLAY, fontSize:15, fontWeight:600, letterSpacing:'-0.2px', boxShadow:'0 0 32px rgba(85,211,150,0.2)' }}
-              >Start Playing Free →</motion.button>
-            </Link>
-            <Link to="/login">
-              <motion.button
-                whileHover={{scale:1.03}} whileTap={{scale:0.97}}
-                style={{ display:'inline-flex', alignItems:'center', height:48, padding:'0 24px', backgroundColor:'transparent', color: C.offWhite, border:`1px solid ${C.borderMid}`, borderRadius:10, cursor:'pointer', fontFamily:FONT_BODY, fontSize:14, fontWeight:400 }}
-              >Sign in</motion.button>
-            </Link>
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.5 }}
+            className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
+            <a href="#" className="group inline-flex items-center gap-3 rounded-full bg-emerald-400 px-8 py-4 text-sm font-medium uppercase tracking-[0.2em] text-black transition-all hover:bg-emerald-300 hover:shadow-[0_0_60px_rgba(85,211,150,0.6)]">
+              <Play className="size-4 fill-black" />
+              Start playing free
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+            </a>
+            <a href="/login" className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 px-8 py-4 text-sm font-medium uppercase tracking-[0.2em] text-zinc-300 transition-all hover:border-emerald-400/60 hover:text-white">
+              Sign in
+            </a>
           </motion.div>
 
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} transition={{delay:0.7}}
-            style={{ display:'flex', gap:48, justifyContent:'center', marginTop:56, paddingTop:32, borderTop:`1px solid ${C.border}` }}
-          >
-            {[['99.2%','Uptime'],['12ms','Avg latency'],['100%','Provably fair']].map(([v,l])=>(
-              <div key={l} style={{textAlign:'center'}}>
-                <div style={{ fontFamily:FONT_DISPLAY, fontSize:26, fontWeight:600, letterSpacing:'-1px', color: C.white }}>{v}</div>
-                <div style={{ fontFamily:FONT_BODY, fontSize:11, fontWeight:500, letterSpacing:'1.4px', textTransform:'uppercase', color: C.muted, marginTop:6 }}>{l}</div>
+          <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.7 }}
+            className="mt-20 grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-emerald-400/10 bg-emerald-400/10">
+            {[["99.2%", "Uptime"], ["12ms", "Avg latency"], ["100%", "Provably fair"]].map(([v, l]) => (
+              <div key={l} className="bg-black/80 p-6 backdrop-blur">
+                <div className="font-serif text-3xl md:text-4xl text-emerald-300">{v}</div>
+                <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.25em] text-zinc-500">{l}</div>
               </div>
             ))}
           </motion.div>
         </motion.div>
 
-        <motion.div animate={{y:[0,8,0]}} transition={{duration:2.4,repeat:Infinity,ease:'easeInOut'}}
-          style={{ position:'absolute', bottom:32, left:'50%', transform:'translateX(-50%)', display:'flex', flexDirection:'column', alignItems:'center', gap:6 }}
-        >
-          <div style={{ fontFamily:FONT_BODY, fontSize:10, fontWeight:500, letterSpacing:'1.5px', textTransform:'uppercase', color: C.faint }}>Scroll</div>
-          <div style={{ width:1, height:32, backgroundColor: C.faint }} />
-        </motion.div>
       </section>
 
       <Ticker />
 
-      {/* STATS */}
-      <section style={{ padding:'96px 40px', backgroundColor: C.bg }}>
-        <div style={{ maxWidth:1280, margin:'0 auto' }}>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', border:`1px solid ${C.border}` }}>
-            {[{value:'48,200+',label:'Active Players'},{value:'2,100,000+',label:'Games Played'},{value:'99%',label:'Satisfaction'},{value:'5',label:'Live Games'}].map((s,i)=>(
-              <div key={s.label} style={{ padding:'48px 32px', borderRight: i<3 ? `1px solid ${C.border}` : 'none', backgroundColor: i===1 ? C.bgCard : 'transparent' }}>
-                <Stat value={s.value} label={s.label} delay={i*0.1} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* GAMES */}
-      <section style={{ padding:'96px 40px', backgroundColor: C.bg }}>
-        <div style={{ maxWidth:1280, margin:'0 auto' }}>
-          <SectionHead eyebrow="Our Games" title="Choose your game" />
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(5,1fr)', gap:12 }}>
-            {GAMES.map((g,i)=><GameCard key={g.id} game={g} delay={i*0.08} />)}
+      <section className="relative py-32">
+        <div className="mx-auto max-w-7xl px-6">
+          <SectionHead eyebrow="The Floor" title={<>Pick your <span className="italic text-emerald-300">poison.</span></>} />
+          <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+            {GAMES.map((g, i) => <GameCard key={g.id} game={g} i={i} />)}
           </div>
         </div>
       </section>
 
       {/* HOW IT WORKS */}
-      <section style={{ padding:'96px 40px', backgroundColor: C.bgElevated }}>
-        <div style={{ maxWidth:1280, margin:'0 auto' }}>
-          <SectionHead eyebrow="Simple Steps" title="Up & running in 60 seconds" />
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
-            <Step num="01" title="Create account"   desc="Sign up free in under 30 seconds. No deposit, no card, no conditions."     delay={0}    />
-            <Step num="02" title="Claim free coins" desc="Receive 1 000 demo coins the moment your account opens. Yours to keep."     delay={0.12} />
-            <Step num="03" title="Play & win"       desc="Choose any live game. Place bets. Feel every outcome in real time."         delay={0.24} />
+      <section className="relative border-t border-emerald-400/5 py-32">
+        <div className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 size-[500px] rounded-full bg-emerald-500/5 blur-[120px]" />
+        <div className="relative mx-auto max-w-7xl px-6">
+          <SectionHead eyebrow="How it works" title={<>From sign-up to <span className="italic text-emerald-300">first win</span> in 60 seconds.</>} />
+          <div className="grid gap-5 md:grid-cols-3">
+            <Step num="01" title="Create your account" desc="One email. One click. No card required, no proof of life, no waiting room." i={0} />
+            <Step num="02" title="Claim 1,000 coins" desc="Your starter stack lands instantly. Play, win, withdraw — your call." i={1} />
+            <Step num="03" title="Enter the arena" desc="Five games. Live leaderboards. Provably fair. Pure adrenaline, on demand." i={2} />
           </div>
         </div>
       </section>
 
       {/* TRUST */}
-      <section style={{ padding:'96px 40px', backgroundColor: C.bg }}>
-        <div style={{ maxWidth:1280, margin:'0 auto' }}>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12 }}>
+      <section className="border-t border-emerald-400/5 py-32">
+        <div className="mx-auto max-w-7xl px-6">
+          <SectionHead eyebrow="Built on trust" title={<>Secure by design. <span className="italic text-emerald-300">Fair by proof.</span></>} />
+          <div className="grid gap-5 md:grid-cols-3">
             {[
-              { icon:'🛡', title:'Provably Fair', desc:'Every outcome is cryptographically verified and independently auditable in real time.' },
-              { icon:'⚡', title:'Instant Settlement', desc:'Winnings hit your balance the moment the result lands. No delays, no waiting, ever.' },
-              { icon:'🔒', title:'SSL Encrypted', desc:'Military-grade encryption protects every session and every transaction on the platform.' },
-            ].map(({icon,title,desc},i)=>(
+              { Icon: Shield, title: "Provably Fair", desc: "Every outcome is cryptographically verified and independently auditable in real time." },
+              { Icon: Zap, title: "Instant Settlement", desc: "Winnings hit your balance the moment the result lands. No delays, no waiting, ever." },
+              { Icon: Lock, title: "SSL Encrypted", desc: "Military-grade encryption protects every session and every transaction on the platform." },
+            ].map(({ Icon, title, desc }, i) => (
               <motion.div key={title}
-                initial={{opacity:0,y:20}} whileInView={{opacity:1,y:0}} viewport={{once:true}}
-                transition={{delay:i*0.12,duration:0.6,ease:[0.16,1,0.3,1]}}
-                whileHover={{y:-4,borderColor: C.borderMid}}
-                style={{ padding:'36px 32px', backgroundColor: C.bgCard, border:`1px solid ${C.border}`, borderRadius:16, transition:'border-color 0.25s' }}
-              >
-                <div style={{ fontSize:28, marginBottom:18 }}>{icon}</div>
-                <div style={{ fontFamily:FONT_DISPLAY, fontSize:18, fontWeight:600, letterSpacing:'-0.3px', color: C.white, marginBottom:10 }}>{title}</div>
-                <div style={{ fontFamily:FONT_BODY, fontSize:14, color: C.muted, lineHeight:1.65 }}>{desc}</div>
+                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }}
+                transition={{ duration: 0.6, delay: i * 0.1, ease: [0.16, 1, 0.3, 1] }}
+                className="group relative overflow-hidden rounded-2xl border border-emerald-400/10 bg-gradient-to-br from-emerald-950/20 to-transparent p-8 transition-colors hover:border-emerald-400/30">
+                <div className="relative flex size-12 items-center justify-center rounded-xl border border-emerald-400/20 bg-emerald-400/5 transition-all group-hover:bg-emerald-400/15 group-hover:shadow-[0_0_30px_rgba(85,211,150,0.3)]">
+                  <Icon className="size-5 text-emerald-300" strokeWidth={1.5} />
+                </div>
+                <h3 className="mt-6 font-serif text-2xl text-white">{title}</h3>
+                <p className="mt-3 text-sm leading-relaxed text-zinc-400">{desc}</p>
               </motion.div>
             ))}
           </div>
@@ -350,60 +264,32 @@ const LandingPage = () => {
       </section>
 
       {/* CTA BAND */}
-      <section style={{ padding:'96px 40px 120px', backgroundColor: C.bgElevated }}>
-        <div style={{ maxWidth:1280, margin:'0 auto' }}>
-          <motion.div
-            initial={{opacity:0,y:24}} whileInView={{opacity:1,y:0}} viewport={{once:true}} transition={{duration:0.7,ease:[0.16,1,0.3,1]}}
-            style={{ border:`1px solid ${C.borderMid}`, borderRadius:20, padding:'72px 80px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:48, backgroundColor: C.bgCard, position:'relative', overflow:'hidden' }}
-          >
-            <div style={{ position:'absolute', top:-80, right:-80, width:400, height:400, background:'radial-gradient(circle, rgba(85,211,150,0.06) 0%, transparent 65%)', pointerEvents:'none' }} />
-            <div style={{ maxWidth:480, position:'relative' }}>
-              <div style={{ fontFamily:FONT_BODY, fontSize:11, fontWeight:600, letterSpacing:'2px', textTransform:'uppercase', color: C.green, marginBottom:16 }}>Begin now</div>
-              <h2 style={{ fontFamily:FONT_DISPLAY, fontSize:40, fontWeight:600, letterSpacing:'-1.8px', color: C.white, marginBottom:16, lineHeight:1.05 }}>Ready to play?</h2>
-              <p style={{ fontFamily:FONT_BODY, fontSize:15, fontWeight:300, color: C.muted, lineHeight:1.7 }}>
-                Join thousands of players. Start with 1 000 free coins — no deposit, no card required.
-              </p>
-            </div>
-            <Link to="/register">
-              <motion.button
-                whileHover={{scale:1.04}} whileTap={{scale:0.96}}
-                style={{ display:'inline-flex', alignItems:'center', height:48, padding:'0 28px', backgroundColor: C.green, color: C.bg, border:'none', borderRadius:10, cursor:'pointer', fontFamily:FONT_DISPLAY, fontSize:15, fontWeight:600, letterSpacing:'-0.2px', boxShadow:'0 0 28px rgba(85,211,150,0.15)', position:'relative' }}
-              >Create free account →</motion.button>
-            </Link>
-          </motion.div>
-        </div>
+      <section className="px-6 py-24">
+        <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, amount: 0.3 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="relative mx-auto max-w-6xl overflow-hidden rounded-3xl border border-emerald-400/20 bg-gradient-to-br from-emerald-900/40 via-black to-black p-12 md:p-20">
+          <div className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:linear-gradient(rgba(85,211,150,0.5)_1px,transparent_1px),linear-gradient(90deg,rgba(85,211,150,0.5)_1px,transparent_1px)] [background-size:40px_40px]" />
+          <div className="pointer-events-none absolute -top-32 -right-32 size-96 rounded-full bg-emerald-400/30 blur-[120px]" />
+
+          <div className="relative max-w-2xl">
+            <div className="font-mono text-[10px] uppercase tracking-[0.3em] text-emerald-300">Begin now</div>
+            <h3 className="mt-4 font-serif text-5xl md:text-7xl text-white tracking-tight leading-[0.95]">
+              Ready to <span className="italic text-emerald-300">play?</span>
+            </h3>
+            <p className="mt-6 max-w-md text-base text-zinc-400 leading-relaxed">
+              Join thousands of players. Start with 1,000 free coins — no deposit, no card required.
+            </p>
+            <a href="#" className="group mt-10 inline-flex items-center gap-3 rounded-full bg-emerald-400 px-8 py-4 text-sm font-medium uppercase tracking-[0.2em] text-black transition-all hover:bg-emerald-300 hover:shadow-[0_0_60px_rgba(85,211,150,0.6)]">
+              Create free account
+              <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" />
+            </a>
+          </div>
+        </motion.div>
       </section>
 
-      {/* FOOTER */}
-      <footer style={{ backgroundColor: C.bg, borderTop:`1px solid ${C.border}`, padding:'40px 40px' }}>
-        <div style={{ maxWidth:1280, margin:'0 auto' }}>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:24, paddingBottom:28, marginBottom:28, borderBottom:`1px solid ${C.border}` }}>
-            <div style={{ display:'flex', alignItems:'center', gap:9 }}>
-              <div style={{ width:24, height:24, border:`1px solid ${C.borderStrong}`, borderRadius:6, display:'flex', alignItems:'center', justifyContent:'center', backgroundColor: C.greenDim }}>
-                <div style={{ width:7, height:7, backgroundColor: C.green, borderRadius:2 }}/>
-              </div>
-              <span style={{ fontFamily:FONT_DISPLAY, fontSize:16, fontWeight:600, color: C.white }}>Vexora</span>
-            </div>
-            <div style={{ display:'flex', gap:32, flexWrap:'wrap' }}>
-              {['Privacy','Terms','Support','Responsible Gaming'].map(item=>(
-                <span key={item} style={{ fontFamily:FONT_BODY, fontSize:13, fontWeight:400, color: C.muted, cursor:'pointer', transition:'color 0.15s' }}
-                  onMouseEnter={e=>e.currentTarget.style.color=C.offWhite} onMouseLeave={e=>e.currentTarget.style.color=C.muted}
-                >{item}</span>
-              ))}
-            </div>
-            <div style={{ display:'flex', gap:8 }}>
-              {['SSL Secured','Provably Fair','Licensed'].map(badge=>(
-                <span key={badge} style={{ fontFamily:FONT_BODY, fontSize:11, fontWeight:500, letterSpacing:'0.3px', color: C.faint, padding:'4px 10px', border:`1px solid ${C.border}`, borderRadius:6 }}>{badge}</span>
-              ))}
-            </div>
-          </div>
-          <div style={{ fontFamily:FONT_BODY, fontSize:12, color: C.faint, textAlign:'center', letterSpacing:'0.3px' }}>
-            © 2025 Vexora. For entertainment purposes only. 18+ · Play Responsibly
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
-};
+}
 
 export default LandingPage;

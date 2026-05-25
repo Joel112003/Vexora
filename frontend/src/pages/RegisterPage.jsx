@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRegister } from '../hooks/useAuth';
 import Input from '../common/ui/Input.jsx';
 import Button from '../common/ui/Button.jsx';
+import PublicNavbar from '../components/PublicNavbar';
 
 /* ─── TOKENS ─── */
 const C = {
@@ -75,7 +76,8 @@ const RegisterPage = () => {
   };
 
   return (
-    <div style={{ minHeight:'100vh', backgroundColor: C.bg, display:'flex', alignItems:'center', justifyContent:'center', padding:'48px 16px', position:'relative', overflow:'hidden', fontFamily:FONT_BODY }}>
+    <div style={{ minHeight:'100vh', backgroundColor: C.bg, display:'flex', alignItems:'center', justifyContent:'center', padding:'96px 16px 48px', position:'relative', overflow:'hidden', fontFamily:FONT_BODY }}>
+      <PublicNavbar />
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Barlow:wght@300;400;500;600&display=swap');
         @import url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap');
