@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { ArrowRight, Menu } from "lucide-react";
+import brandLogo from "../assets/vexora_brand.jpeg";
 
 function PublicNavbar() {
   const location = useLocation();
@@ -10,9 +11,8 @@ function PublicNavbar() {
     <nav className="fixed inset-x-0 top-0 z-50 border-b border-emerald-400/10 bg-black/70 backdrop-blur-xl">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-7 py-5">
         <Link to="/" className="flex items-center gap-3">
-          <div className="relative flex size-8 items-center justify-center rounded-lg bg-emerald-400 text-black">
-            <span className="font-serif italic text-lg leading-none">V</span>
-            <span className="absolute inset-0 rounded-lg ring-1 ring-emerald-300/60 animate-pulse" />
+          <div className="relative flex size-8 items-center justify-center overflow-hidden rounded-lg ring-1 ring-emerald-300/60">
+            <img src={brandLogo} alt="Vexora" className="h-full w-full object-cover" />
           </div>
           <span className="font-serif text-2xl tracking-tight text-white">Vexora</span>
         </Link>

@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import brandLogo from "../assets/vexora_brand.jpeg";
 
 function Footer() {
   return (
@@ -12,8 +13,8 @@ function Footer() {
             transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
             className="flex items-center gap-2.5"
           >
-            <div className="flex size-9 items-center justify-center rounded-lg bg-emerald-400 text-black">
-              <span className="font-serif italic text-lg leading-none">V</span>
+            <div className="flex size-9 items-center justify-center overflow-hidden rounded-lg ring-1 ring-emerald-300/60">
+              <img src={brandLogo} alt="Vexora" className="h-full w-full object-cover" />
             </div>
             <div>
               <div className="font-serif text-2xl text-white">Vexora</div>

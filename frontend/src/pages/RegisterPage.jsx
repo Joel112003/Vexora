@@ -5,6 +5,7 @@ import { useRegister } from '../hooks/useAuth';
 import Input from '../common/ui/Input.jsx';
 import Button from '../common/ui/Button.jsx';
 import PublicNavbar from '../components/PublicNavbar';
+import brandLogo from '../assets/vexora_brand.jpeg';
 
 /* ─── TOKENS ─── */
 const C = {
@@ -93,11 +94,11 @@ const RegisterPage = () => {
         {/* Header */}
         <motion.div initial={{opacity:0,y:-20}} animate={{opacity:1,y:0}} transition={{duration:0.5,ease:[0.16,1,0.3,1]}} style={{textAlign:'center',marginBottom:24}}>
           <motion.div
-            style={{ width:48, height:48, border:`1px solid ${C.borderStrong}`, borderRadius:12, margin:'0 auto 20px', display:'flex', alignItems:'center', justifyContent:'center', backgroundColor: C.greenDim }}
+            style={{ width:48, height:48, border:`1px solid ${C.borderStrong}`, borderRadius:12, margin:'0 auto 20px', display:'flex', alignItems:'center', justifyContent:'center', backgroundColor: C.greenDim, overflow:'hidden' }}
             animate={{ boxShadow:['0 0 0px rgba(85,211,150,0)','0 0 28px rgba(85,211,150,0.22)','0 0 0px rgba(85,211,150,0)'] }}
             transition={{ duration:3.2, repeat:Infinity, ease:'easeInOut' }}
           >
-            <div style={{ width:12, height:12, backgroundColor: C.green, borderRadius:3 }}/>
+            <img src={brandLogo} alt="Vexora" style={{ width:'100%', height:'100%', objectFit:'cover' }} />
           </motion.div>
 
           <h1 style={{ fontFamily:FONT_DISPLAY, fontSize:40, fontWeight:600, letterSpacing:'-2px', lineHeight:1.0, color: C.white, margin:0 }}>

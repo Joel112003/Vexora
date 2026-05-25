@@ -6,6 +6,7 @@ import { useLogout } from '../hooks/useAuth';
 import { useBalance } from '../hooks/useBalance';
 import { useTopup } from '../hooks/useTopup';
 import Button from '../common/ui/Button';
+import brandLogo from '../assets/vexora_brand.jpeg';
 
 const navLinks = [
   { path: '/app',         label: 'Dashboard', icon: '⬡' },
@@ -51,14 +52,12 @@ const Navbar = () => {
           {/* Logo */}
           <Link to="/app" className="shrink-0 flex items-center gap-2.5 group">
             <motion.div
-              className="relative w-8 h-8"
-              whileHover={{ rotate: 180 }}
+              className="relative w-8 h-8 overflow-hidden rounded-lg"
+              whileHover={{ rotate: 4, scale: 1.03 }}
               transition={{ duration: 0.4, ease: 'easeInOut' }}
+              style={{ boxShadow: '0 0 18px rgba(245,158,11,0.25)' }}
             >
-              <div className="w-8 h-8 rotate-45 border-2 border-amber-500/70 rounded-sm flex items-center justify-center"
-                style={{ boxShadow: '0 0 15px rgba(245,158,11,0.3)' }}>
-                <span className="text-xs -rotate-45" style={{ fontFamily: 'serif' }}>♠</span>
-              </div>
+              <img src={brandLogo} alt="Vexora" className="h-full w-full object-cover" />
             </motion.div>
             <span
               className="text-xl font-bold tracking-[0.12em] uppercase"
@@ -69,7 +68,7 @@ const Navbar = () => {
                 filter: 'drop-shadow(0 0 8px rgba(245,158,11,0.3))',
               }}
             >
-              Casino
+              Vexora
             </span>
           </Link>
 

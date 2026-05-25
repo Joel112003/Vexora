@@ -11,6 +11,7 @@ import mineImage from "../assets/Mine.jpeg";
 import crashImage from "../assets/Crash.jpeg";
 import coinflipVideo from "../assets/coinflip.mp4";
 
+
 const TICKER = ["Provably Fair","Instant Settlement","1,000 Free Coins","Zero Deposit","SSL Encrypted","99.2% Uptime"];
 function Ticker() {
   return (

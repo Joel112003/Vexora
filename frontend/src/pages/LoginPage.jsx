@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, ArrowRight, ShieldCheck, Zap, Trophy } from "lucide-react";
 import rouletteBg from "../assets/vexora-roulette.jpg";
+import brandLogo from "../assets/vexora_brand.jpeg";
 import PublicNavbar from "../components/PublicNavbar";
 
 const ease = [0.16, 1, 0.3, 1];
@@ -68,9 +69,8 @@ function LoginPage() {
           transition={{ duration: 0.7, ease }}
           className="relative z-10 flex items-center gap-3 mt-10"
         >
-          <div className="relative flex size-9 items-center justify-center   rounded-lg bg-emerald-400 text-black">
-            <span className="font-serif italic text-xl leading-none">V</span>
-            <span className="absolute inset-0 rounded-lg ring-1 ring-emerald-300/60 animate-pulse" />
+          <div className="relative flex size-9 items-center justify-center overflow-hidden rounded-lg ring-1 ring-emerald-300/60">
+            <img src={brandLogo} alt="Vexora" className="h-full w-full object-cover" />
           </div>
           <span className="font-serif text-3xl tracking-tight text-white">Vexora</span>
         </motion.div>
