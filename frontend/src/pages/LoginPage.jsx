@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, ArrowRight, ShieldCheck, Zap, Trophy } from "lucide-react";
 import rouletteBg from "../assets/vexora-roulette.jpg";
 import brandLogo from "../assets/vexora_brand.jpeg";
 import PublicNavbar from "../components/PublicNavbar";
+import Input from "../common/ui/Input";
+import Button from "../common/ui/Button";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -17,8 +19,18 @@ function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState(null);
+  const [toast, setToast] = useState(null);
+  const toastTimerRef = useRef(null);
   const [pending, setPending] = useState(false);
   const [showPw, setShowPw] = useState(false);
+
+  const showToast = (tone, message, ttl = 2400) => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    setToast({ tone, message });
+    toastTimerRef.current = setTimeout(() => setToast(null), ttl);
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -29,9 +41,12 @@ function LoginPage() {
     if (Object.keys(next).length) return;
     setPending(true);
     setServerError(null);
+    showToast("success", "Credentials accepted. Signing you in...", 1800);
     setTimeout(() => {
       setPending(false);
-      setServerError("Invalid credentials. Please verify and try again.");
+      const message = "Invalid credentials. Please verify and try again.";
+      setServerError(message);
+      showToast("error", message, 2600);
     }, 900);
   };
 
@@ -41,6 +56,46 @@ function LoginPage() {
       style={{ fontFamily: "'Geist', ui-sans-serif, system-ui" }}
     >
       <PublicNavbar />
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: 0.25, ease }}
+            className="fixed top-6 right-6 z-[60]"
+          >
+            <div
+              className="flex items-center gap-3 rounded-xl px-4 py-3 border"
+              style={{
+                background: "linear-gradient(135deg, rgba(12,16,14,0.98), rgba(8,12,10,0.98))",
+                borderColor: toast.tone === "success" ? "rgba(52,211,153,0.4)" : "rgba(244,63,94,0.35)",
+                boxShadow:
+                  toast.tone === "success"
+                    ? "0 18px 45px -22px rgba(52,211,153,0.45)"
+                    : "0 18px 45px -22px rgba(244,63,94,0.5)",
+              }}
+            >
+              <span
+                className={
+                  toast.tone === "success"
+                    ? "size-1.5 rounded-full bg-emerald-300"
+                    : "size-1.5 rounded-full bg-rose-400"
+                }
+              />
+              <p
+                className={
+                  toast.tone === "success"
+                    ? "text-[12px] text-emerald-100 tracking-[0.02em]"
+                    : "text-[12px] text-rose-200 tracking-[0.02em]"
+                }
+              >
+                {toast.message}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <style>{`
         .font-serif { font-family: 'Instrument Serif', ui-serif, Georgia, serif; }
         .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }
@@ -134,7 +189,6 @@ function LoginPage() {
         </div>
       </aside>
 
-      {/* RIGHT — form */}
       <main className="lg:w-[42%] bg-gradient-to-b from-black to-emerald-950/30 flex flex-col justify-center px-6 py-10 lg:px-16 lg:py-12 relative overflow-hidden">
         <div className="pointer-events-none absolute -top-40 -right-40 size-96 rounded-full bg-emerald-400/15 blur-[120px]" />
 
@@ -183,16 +237,17 @@ function LoginPage() {
               )}
             </AnimatePresence>
 
-            <form className="space-y-5" onSubmit={handleSubmit} noValidate>
+            <form className="space-y-4" onSubmit={handleSubmit} noValidate>
               <motion.div
                 variants={{ hidden: { opacity: 0, x: -10 }, visible: { opacity: 1, x: 0, transition: { duration: 0.5, ease } } }}
                 className="space-y-1.5"
               >
-                <label htmlFor="email" className="block font-mono text-[10px] uppercase tracking-[0.25em] text-zinc-500 ml-0.5">
+                <label htmlFor="email" className="block font-mono font-semibold text-[10px] uppercase tracking-[0.25em] text-zinc-400 ml-0.5">
                   Email address
                 </label>
-                <input
+                <Input
                   id="email"
+                  label=""
                   type="email"
                   autoComplete="email"
                   value={form.email}
@@ -200,21 +255,11 @@ function LoginPage() {
                     setForm((p) => ({ ...p, email: e.target.value }));
                     if (errors.email) setErrors((p) => ({ ...p, email: undefined }));
                   }}
-                  placeholder="name@domain.com"
-                  className="w-full bg-black/40 border border-emerald-400/15 focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/15 text-white placeholder:text-zinc-600 px-4 py-3 text-sm rounded-md transition-all duration-200 outline-none"
+                  placeholder="johndoe@gmail.com"
+                  fontWeight={600}
+                  labelWeight={600}
+                  error={errors.email}
                 />
-                <AnimatePresence>
-                  {errors.email && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      className="text-[11px] text-rose-400 ml-1"
-                    >
-                      {errors.email}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
               </motion.div>
 
               <motion.div
@@ -222,68 +267,53 @@ function LoginPage() {
                 className="space-y-1.5"
               >
                 <div className="flex justify-between items-center">
-                  <label htmlFor="password" className="font-mono text-[10px] uppercase tracking-[0.25em] text-zinc-500 ml-0.5">
+                  <label htmlFor="password" className="font-mono font-semibold text-[10px] uppercase tracking-[0.25em] text-zinc-400 ml-0.5">
                     Password
                   </label>
                   <a href="#" className="text-[11px] text-emerald-300 hover:text-emerald-200 transition-colors">
                     Forgot password?
                   </a>
                 </div>
-                <div className="relative">
-                  <input
-                    id="password"
-                    type={showPw ? "text" : "password"}
-                    autoComplete="current-password"
-                    value={form.password}
-                    onChange={(e) => {
-                      setForm((p) => ({ ...p, password: e.target.value }));
-                      if (errors.password) setErrors((p) => ({ ...p, password: undefined }));
-                    }}
-                    placeholder="••••••••"
-                    className="w-full bg-black/40 border border-emerald-400/15 focus:border-emerald-400/60 focus:ring-2 focus:ring-emerald-400/15 text-white placeholder:text-zinc-600 px-4 py-3 pr-12 text-sm rounded-md transition-all duration-200 outline-none"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPw((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-emerald-300 transition-colors"
-                  >
-                    {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                  </button>
-                </div>
-                <AnimatePresence>
-                  {errors.password && (
-                    <motion.p
-                      initial={{ opacity: 0, y: -4 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -4 }}
-                      className="text-[11px] text-rose-400 ml-1"
+                <Input
+                  id="password"
+                  label=""
+                  type={showPw ? "text" : "password"}
+                  autoComplete="current-password"
+                  value={form.password}
+                  onChange={(e) => {
+                    setForm((p) => ({ ...p, password: e.target.value }));
+                    if (errors.password) setErrors((p) => ({ ...p, password: undefined }));
+                  }}
+                  placeholder="••••••••"
+                  fontWeight={600}
+                  error={errors.password}
+                  rightElement={
+                    <button
+                      type="button"
+                      onClick={() => setShowPw((v) => !v)}
+                      className="text-zinc-500 hover:text-emerald-300 transition-colors"
                     >
-                      {errors.password}
-                    </motion.p>
-                  )}
-                </AnimatePresence>
+                      {showPw ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                    </button>
+                  }
+                />
               </motion.div>
 
-              <motion.button
+              <motion.div
                 variants={{ hidden: { opacity: 0, y: 10 }, visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease } } }}
-                type="submit"
-                disabled={pending}
-                whileHover={{ y: -2 }}
-                whileTap={{ scale: 0.985 }}
-                className="group relative w-full overflow-hidden bg-emerald-400 hover:bg-emerald-300 disabled:opacity-60 text-black font-medium text-sm py-3.5 rounded-md transition-colors duration-300 shadow-[0_10px_40px_-12px_rgba(85,211,150,0.6)] inline-flex items-center justify-center gap-2"
               >
-                <span className="relative z-10 uppercase tracking-[0.2em]">
-                  {pending ? "Authorizing…" : "Authorize entry"}
-                </span>
-                {!pending && (
-                  <ArrowRight className="relative z-10 size-4 transition-transform group-hover:translate-x-1" />
-                )}
-                <motion.span
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full"
-                  animate={pending ? {} : { translateX: ["-100%", "200%"] }}
-                  transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 1.6, ease: "easeInOut" }}
-                />
-              </motion.button>
+                <Button
+                  type="submit"
+                  loading={pending}
+                  fullWidth
+                  height={42}
+                  paddingX={18}
+                  fontSize={12}
+                >
+                  <span className="uppercase tracking-[0.2em]">Authorize entry</span>
+                  <ArrowRight className="size-4" />
+                </Button>
+              </motion.div>
             </form>
 
             <motion.p
@@ -291,7 +321,7 @@ function LoginPage() {
               className="text-center text-xs text-zinc-500 mt-10"
             >
               New to Vexora?{" "}
-              <a href="#" className="text-emerald-300 hover:text-emerald-200 underline-offset-4 hover:underline transition-colors">
+              <a href="/register" className="text-emerald-300 hover:text-emerald-200 underline-offset-4 hover:underline transition-colors">
                 Apply for membership →
               </a>
             </motion.p>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import Spinner from './Spinner';
 
 const C = {
   green:     '#55D396',
@@ -45,6 +46,10 @@ const Button = ({
   disabled = false,
   variant  = 'primary',
   fullWidth = false,
+  height = 44,
+  paddingX = 20,
+  fontSize = 14,
+  contentClassName = '',
   className = '',
 }) => {
   const [ripples, setRipples] = useState([]);
@@ -73,7 +78,7 @@ const Button = ({
       style={{
         position:'relative', overflow:'hidden', outline:'none',
         width: fullWidth ? '100%' : 'auto',
-        height:44,
+        height,
         background: isOff ? C.disabled : hovered ? v.hoverBg : v.bg,
         border:`1px solid ${isOff ? C.disabled : v.border}`,
         borderRadius:10,
@@ -92,17 +97,17 @@ const Button = ({
         />
       ))}
 
-      <div style={{
-        position:'relative', zIndex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'0 20px',
-        fontFamily: FONT_DISPLAY, fontSize:14, fontWeight:600, letterSpacing:'-0.1px',
-        color: isOff ? C.muted : v.color,
-      }}>
+      <div
+        className={contentClassName}
+        style={{
+          position:'relative', zIndex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:`0 ${paddingX}px`,
+          fontFamily: FONT_DISPLAY, fontSize, fontWeight:600, letterSpacing:'-0.1px',
+          color: isOff ? C.muted : v.color,
+        }}
+      >
         {loading ? (
           <>
-            <motion.span
-              style={{ width:13, height:13, borderRadius:'50%', border:`1.5px solid ${v.color}`, borderTopColor:'transparent', display:'inline-block' }}
-              animate={{ rotate:360 }} transition={{ duration:0.65, repeat:Infinity, ease:'linear' }}
-            />
+            <Spinner size={13} color={v.color} thickness={1.5} />
             <span>Processing…</span>
           </>
         ) : children}

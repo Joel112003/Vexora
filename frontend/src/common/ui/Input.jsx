@@ -15,10 +15,33 @@ const C = {
 };
 const FONT_BODY    = `'Barlow', 'Inter', sans-serif`;
 
-const Input = ({ label, type = 'text', value, onChange, placeholder, error }) => {
+const Input = ({
+  label,
+  type = 'text',
+  value,
+  onChange,
+  placeholder,
+  error,
+  rightElement,
+  inputStyle,
+  fontWeight = 500,
+  labelWeight = 600,
+  ...inputProps
+}) => {
   const [focused, setFocused] = useState(false);
   const hasValue = value && value.length > 0;
   const lifted   = focused || hasValue;
+  const rightPadding = rightElement ? 44 : 14;
+
+  const handleFocus = (e) => {
+    setFocused(true);
+    inputProps.onFocus?.(e);
+  };
+
+  const handleBlur = (e) => {
+    setFocused(false);
+    inputProps.onBlur?.(e);
+  };
 
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
@@ -40,7 +63,8 @@ const Input = ({ label, type = 'text', value, onChange, placeholder, error }) =>
           {/* Floating label */}
           {label && (
             <motion.label
-              style={{ position:'absolute', left:14, pointerEvents:'none', zIndex:2, fontFamily:FONT_BODY, fontWeight:500, transformOrigin:'left center' }}
+              htmlFor={inputProps.id}
+              style={{ position:'absolute', left:14, pointerEvents:'none', zIndex:2, fontFamily:FONT_BODY, fontWeight:labelWeight, transformOrigin:'left center' }}
               animate={{
                 top:  lifted ? '8px' : '50%',
                 y:    lifted ? '0%' : '-50%',
@@ -55,20 +79,28 @@ const Input = ({ label, type = 'text', value, onChange, placeholder, error }) =>
           )}
 
           <input
+            {...inputProps}
             type={type}
             value={value}
             onChange={onChange}
-            placeholder={lifted ? '' : placeholder}
-            onFocus={() => setFocused(true)}
-            onBlur={()  => setFocused(false)}
+            placeholder={label ? (lifted ? placeholder : '') : placeholder}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             style={{
               position:'relative', zIndex:1, width:'100%', height:'100%',
               background:'transparent', border:'none', outline:'none',
-              padding: label ? '24px 14px 8px' : '0 14px',
-              fontFamily: FONT_BODY, fontSize:15, fontWeight:400,
+              padding: label ? `24px ${rightPadding}px 8px 14px` : `0 ${rightPadding}px 0 14px`,
+              fontFamily: FONT_BODY, fontSize:15, fontWeight,
               color: C.offWhite, letterSpacing:'0.1px',
+              ...inputStyle,
             }}
           />
+
+          {rightElement && (
+            <div style={{ position:'absolute', right:12, top:'50%', transform:'translateY(-50%)', zIndex:3, display:'flex', alignItems:'center' }}>
+              {rightElement}
+            </div>
+          )}
 
           {/* Bottom accent */}
           <motion.div
