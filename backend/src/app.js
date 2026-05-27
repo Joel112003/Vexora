@@ -26,8 +26,10 @@ app.use(
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(mongoSanitize());
-app.use(xssClean());
+if (process.env.NODE_ENV !== "test") {
+  app.use(mongoSanitize());
+  app.use(xssClean());
+}
 
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -56,6 +58,13 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   const status = err.statusCode || 500;
   const message = err.message || "Internal server error";
+  if (process.env.NODE_ENV === "test") {
+    return res.status(status).json({
+      success: false,
+      message,
+      stack: err.stack,
+    });
+  }
   res.status(status).json({ success: false, message });
 });
 

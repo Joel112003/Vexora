@@ -6,8 +6,7 @@ export const protect = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || authHeader.startsWith("Bearer"));
-    {
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return res
         .status(401)
         .json(apiResponse(false, "No authorized , No Token"));
@@ -29,7 +28,7 @@ export const protect = async (req, res, next) => {
 
 export const restrictTo =
   (...roles) =>
-  (re, res, next) => {
+  (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       res.status(401).json(apiResponse(false, "You do not have permission"));
     }

@@ -17,7 +17,7 @@ router.post('/register'  , validate(registerSchema) , register);
 router.post('/login' , validate(loginSchema) , login);
 
 router.post('/logout' , protect , logout);
-router.post('/refres' , refreshToken);
+router.post('/refresh' , refreshToken);
 
 router.get('/me' , protect , getMe);
 

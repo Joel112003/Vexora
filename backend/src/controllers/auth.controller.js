@@ -58,6 +58,13 @@ export const register = async (req, res) => {
       }),
     );
   } catch (error) {
+    if (process.env.NODE_ENV === "test") {
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+        stack: error.stack,
+      });
+    }
     res.status(500).json(apiResponse(false, error.message));
   }
 };
@@ -99,13 +106,20 @@ export const login = async (req, res) => {
       }),
     );
   } catch (error) {
+    if (process.env.NODE_ENV === "test") {
+      return res.status(410).json({
+        success: false,
+        message: error.message,
+        stack: error.stack,
+      });
+    }
     return res.status(410).json(apiResponse(false, error.message));
   }
 };
 
 export const refreshToken = async (req, res) => {
   try {
-    const token = req.cookie.refreshToken;
+    const token = req.cookies?.refreshToken;
     if (!token) {
       return res
         .status(401)
@@ -113,8 +127,9 @@ export const refreshToken = async (req, res) => {
     }
 
     const decoded = verifyRefreshToken(token);
-    const session = await Session.create({
+    const session = await Session.findOne({
       userId: decoded.id,
+      refreshToken: token,
       isActive: true,
     }).select("+refreshToken");
 
@@ -150,13 +165,13 @@ export const refreshToken = async (req, res) => {
 
 export const logout = async (req, res) => {
   try {
-    const token = req.cookie.refreshToken;
+    const token = req.cookies?.refreshToken;
 
     if (token) {
-      await Session.updateMany({ userId: user._id }, { isActive: false });
+      await Session.updateMany({ userId: req.user._id }, { isActive: false });
     }
-    res.cookie("refreshToken", COOKIE_OPTIONS);
-    res.json(true, "Logged out successfully!!");
+    res.clearCookie("refreshToken", COOKIE_OPTIONS);
+    res.json(apiResponse(true, "Logged out successfully!!"));
   } catch (error) {
     return res.status(401).json(apiResponse(false, error.message));
   }
