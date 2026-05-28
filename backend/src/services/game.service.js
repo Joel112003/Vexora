@@ -3,6 +3,7 @@ import { invalidatedBalance, invalidatedBetHistory } from "../cache/index.js";
 
 export const placeBet = async ({
   userId,
+  gameId,
   betAmount,
   gameType,
   multiplier,
@@ -26,6 +27,7 @@ export const placeBet = async ({
 
   const bet = await Bet.create({
     userId,
+    gameId,
     betAmount,
     gameType,
     multiplier,
