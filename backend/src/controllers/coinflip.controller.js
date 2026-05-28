@@ -1,6 +1,7 @@
 import { coinFlip } from "../services/coinflip.service.js";
 import { apiResponse } from "../utilis/apiResponse.js";
 import { placeBet } from "../services/game.service.js";
+import { Game } from "../models/index.js";
 
 export const playCoinFlip = async (req, res) => {
   try {
@@ -8,13 +9,19 @@ export const playCoinFlip = async (req, res) => {
 
     const result = coinFlip({ betAmount, choice });
 
+    const game = await Game.findOne({ type: "coinflip" });
+    if (!game) {
+      return res.status(400).json(apiResponse(false, "Game not found"));
+    }
+
     const { bet, balance } = await placeBet({
-      userId: user._id,
-      gameType: "coinFlip",
+      userId: req.user._id,
+      gameId: game._id,
+      gameType: "coinflip",
       betAmount,
       multiplier: result.multiplier,
       payout: result.payout,
-      outcome: result.win ? "win" : "lose",
+      outcome: result.win ? "win" : "loss",
       gameData: {
         result: result.result,
         choice,
