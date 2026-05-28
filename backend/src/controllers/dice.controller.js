@@ -1,6 +1,7 @@
 import { rollDice } from "../services/dice.service.js";
 import { placeBet } from "../services/game.service.js";
 import { apiResponse } from "../utilis/apiResponse.js";
+import { Game } from "../models/index.js";
 
 export const playDice = async (req, res) => {
   try {
@@ -16,10 +17,16 @@ export const playDice = async (req, res) => {
         .status(400)
         .json(apiResponse(false, "Target must be between 2 and 98."));
     }
-    const result = rollDice({ betAmount, direction, target });
+    const result = await rollDice({ betAmount, direction, target });
+
+    const game = await Game.findOne({ type: "dice" });
+    if (!game) {
+      return res.status(400).json(apiResponse(false, "Game not found"));
+    }
 
     const { bet, balance } = await placeBet({
       userId: req.user._id,
+      gameId: game._id,
       gameType: "dice",
       betAmount,
       multiplier: result.multiplier,

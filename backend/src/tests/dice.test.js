@@ -1,6 +1,7 @@
 import {
   afterAll,
   beforeAll,
+  beforeEach,
   afterEach,
   expect,
   it,
@@ -11,6 +12,7 @@ import { rollDice } from "../services/dice.service";
 import supertest from "supertest";
 import app from "../app.js";
 import { setupDB, closeDB, clearDB } from "./setup.js";
+import { Game } from "../models/index.js";
 
 const request = supertest(app);
 
@@ -101,5 +103,105 @@ describe("rollDice() service", () => {
     expect(result.win).toBe(true);
     expect(result.multiplier).toBe(1.9);
     randomSpy.mockRestore();
+  });
+});
+
+//dice api integration testing
+describe("POST /api/v2/games/dice", () => {
+  const createDiceGame = async () => {
+    await Game.create({ name: "dice", type: "dice" });
+  };
+
+  beforeEach(async () => {
+    await createDiceGame();
+  });
+
+  const getToken = async () => {
+    const res = await request.post("/api/v1/auth/register").send({
+      username: "dice-user",
+      email: "dice@dice.com",
+      password: "password123",
+    });
+    return res.body.data.accessToken;
+  };
+
+  it("should play dice and return result", async () => {
+    const token = await getToken();
+
+    const res = await request
+      .post("/api/v2/games/dice")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ betAmount: 10, target: 50, direction: "over" });
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.result.roll).toBeDefined();
+    expect(res.body.data.balance).toBeDefined();
+    expect(["win", "loss"]).toContain(
+      res.body.data.result.win ? "win" : "loss",
+    );
+  });
+
+  it("should reject bet exceeding balance", async () => {
+    const token = await getToken();
+
+    const res = await request
+      .post("/api/v2/games/dice")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ betAmount: 9999, target: 50, direction: "over" });
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+  });
+
+  it("should reject invalid direction", async () => {
+    const token = await getToken();
+
+    const res = await request
+      .post("/api/v2/games/dice")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ betAmount: 10, target: 50, direction: "sideways" });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("should reject target out of range", async () => {
+    const token = await getToken();
+
+    const res = await request
+      .post("/api/v2/games/dice")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ betAmount: 10, target: 99, direction: "over" });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("should reject unauthenticated request", async () => {
+    const res = await request
+      .post("/api/v2/games/dice")
+      .send({ betAmount: 10, target: 50, direction: "over" });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("should deduct balance after bet", async () => {
+    const token = await getToken();
+
+    const before = await request
+      .get("/api/v1/auth/me")
+      .set("Authorization", `Bearer ${token}`);
+    const balanceBefore = before.body.data.user.balance;
+
+    await request
+      .post("/api/v2/games/dice")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ betAmount: 10, target: 50, direction: "over" });
+
+    const after = await request
+      .get("/api/v1/auth/me")
+      .set("Authorization", `Bearer ${token}`);
+    const balanceAfter = after.body.data.user.balance;
+
+    expect(balanceBefore).not.toBe(balanceAfter);
   });
 });
