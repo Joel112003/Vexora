@@ -8,7 +8,7 @@ export const playDice = async (req, res) => {
     if (!["over", "under"].includes(direction)) {
       return res
         .status(400)
-        .json(apiResponse(false, "Direction must over or under1"));
+        .json(apiResponse(false, "Direction must over or under 1"));
     }
 
     if (target < 2 || target > 98) {
