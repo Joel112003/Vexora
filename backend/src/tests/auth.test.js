@@ -9,7 +9,8 @@ import {
   afterEach,
 } from "@jest/globals";
 import { setupDB, closeDB, clearDB } from "./setup.js";
-
+import crypto    from 'crypto';
+import { PasswordReset } from "../models/index.js"
 const request = supertest(app);
 
 const registerUser = (overrides = {}) =>

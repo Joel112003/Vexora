@@ -1,4 +1,4 @@
-import { User, Session } from "../models/index.js";
+import { User, Session, PasswordReset } from "../models/index.js";
 import { apiResponse } from "../utilis/apiResponse.js";
 
 import {
@@ -6,6 +6,8 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from "../utilis/jwt.js";
+import crypto from "crypto";
+import { sendPasswordResetEmail } from "../utilis/email.js";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -190,4 +192,87 @@ export const getMe = async (req, res) => {
       },
     }),
   );
+};
+
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.json(
+        apiResponse(
+          true,
+          "If that email exists , a reset link has been shared",
+        ),
+      );
+    }
+
+    await PasswordReset.deleteMany({ userId: user._id });
+    const resetToken = crypto.randomBytes(32).toString("hex");
+
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    await PasswordReset.create({
+      userId: user._id,
+      token: hashedToken,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
+    });
+
+    await sendPasswordResetEmail({
+      to: user.email,
+      resetToken,
+      username: user.username,
+    });
+
+    res.json(
+      apiResponse(true, "If the email exists , a reset link has been sent"),
+    );
+  } catch (error) {
+    res.status(500).json(apiResponse(false, error.message));
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, password } = req.body;
+
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    const resetRecord = await PasswordReset.findOne({
+      token: hashedToken,
+    }).select("+token");
+
+    if (!resetRecord) {
+      return res
+        .status(400)
+        .json(apiResponse(false, "invalid or expired token"));
+    }
+
+    const user = await User.findById(resetRecord.userId);
+    if (!user) {
+      return res.status(400).json(apiResponse(false, "User not found!"));
+    }
+
+    user.passwordHash = password;
+    await user.save();
+
+    await PasswordReset.deleteMany({ userId: user._id });
+    await Session.updateMany({ userId: user._id }, { isActive: false });
+
+    res.json(
+      apiResponse(
+        true,
+        "Password reset successfully , Please log in with your password",
+      ),
+    );
+  } catch (error) {
+    res.status(500).json(apiResponse(false, error.message));
+  }
 };
