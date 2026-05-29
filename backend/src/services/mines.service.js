@@ -1,5 +1,3 @@
-import { multipleOf } from "zod";
-
 const GRID_SIZE = 25;
 
 export const createMineGames = (mineCount) => {
@@ -15,7 +13,7 @@ export const createMineGames = (mineCount) => {
 
   //build the full grid - each tile knows if it's a mine
   const grid = Array.from({ length: GRID_SIZE }, (_, i) =>
-    i({
+    ({
       index: i,
       isMine: mines.has(i),
       revealed: false,
@@ -27,13 +25,15 @@ export const createMineGames = (mineCount) => {
 export const calculateMinesMultiplier = (revealed, mineCount) => {
   //more tiles received cuz  of more mines for higher cash out
   const safeTiles = GRID_SIZE - mineCount;
-  const multiplier = 1;
+  let multiplier = 1;
+  let probability = 1;
 
   for (let i = 0; i < revealed; i++) {
-    multiplier *= (safeTiles - i) / (GRID_SIZE - mineCount - i);
+    probability *= (safeTiles - i) / (GRID_SIZE - i);
   }
 
-  return parseFloat((multiplier * 0.97).toFixed(4));
+  multiplier = (1 / probability) * 0.97;
+  return parseFloat(multiplier.toFixed(4));
 };
 
 export const revealTile = ({ grid, index }) => {
