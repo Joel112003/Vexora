@@ -67,4 +67,85 @@ describe("calculateMinesMultiplier() service", () => {
   });
 });
 
+describe("Mines API flow()", () => {
+  const getToken = async () => {
+    const res = await request.post("/api/v1/auth/register").send({
+      username: "miner",
+      email: "mines@test.com",
+      password: "password123",
+    });
+    return res.body.data.accessToken;
+  };
 
+  it("should start a mine game", async () => {
+    const token = await getToken();
+
+    const res = await request
+      .post("/api/v2/games/mines/start")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ betAmount: 50, mineCount: 5 });
+
+    expect(res.status).toBe(200);
+    expect(res.body.data.grid.length).toBe(25);
+    expect(res.body.data.grid[0].isMine).toBeUndefined();
+  });
+
+  it("should reject invalid mine count", async () => {
+    const token = await getToken();
+
+    const res = await request
+      .post("/api/v2/games/mines/start")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ betAmount: 50, mineCount: 25 });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("full flow — start, reveal safe tile, cashout", async () => {
+    const token = await getToken();
+
+    // start game with 1 mine — almost all tiles are safe
+    await request
+      .post("/api/v2/games/mines/start")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ betAmount: 50, mineCount: 1 });
+
+    // reveal tiles until we find a safe one
+    let safeIndex = 0;
+    for (let i = 0; i < 25; i++) {
+      const rev = await request
+        .post("/api/v2/games/mines/reveal")
+        .set("Authorization", `Bearer ${token}`)
+        .send({ index: i });
+
+      if (rev.body.success) {
+        safeIndex = i;
+        break;
+      }
+    }
+    expect(safeIndex).not.toBeNull();
+
+    const cashout = await request
+      .post("/api/v2/games/mines/cashout")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(cashout.status).toBe(200);
+    expect(cashout.body.data.payout).toBeGreaterThan(0);
+    expect(cashout.body.data.balance).toBeDefined();
+  });
+
+  it("should not allow cashout before any reveal", async () => {
+    const token = await getToken();
+
+    await request
+      .post("/api/v2/games/mines/start")
+      .set("Authorization", `Bearer ${token}`)
+      .send({ betAmount: 50, mineCount: 5 });
+
+    const res = await request
+      .post("/api/v2/games/mines/cashout")
+      .set("Authorization", `Bearer ${token}`);
+
+    expect(res.status).toBe(400);
+  });
+});

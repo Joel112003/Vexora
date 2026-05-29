@@ -22,11 +22,11 @@ export const cacheBalance = async (userId, balance) => {
 };
 
 export const getCachedBalance = async (userId) => {
-  await getCache(`balance : ${userId}`);
+  return await getCache(`balance : ${userId}`);
 };
 
 export const invalidatedBalance = async (userId) => {
-  await deleteCache(`balance: ${userId}`);
+  await deleteCache(`balance : ${userId}`);
 };
 
 // bet history cache
@@ -36,7 +36,7 @@ export const cacheBetHistory = async (userId, bets) => {
 };
 
 export const getCachedBetHistory = async (userId) => {
-  await getCache(`bet-history : ${userId}`);
+  return await getCache(`bet-history : ${userId}`);
 };
 
 export const invalidatedBetHistory = async (userId) => {
@@ -50,9 +50,9 @@ export const saveMinesGame = async (userId, gameStats) => {
   await setCache(`mines : ${userId}`, gameStats, MINES_TTL);
 };
 export const getMinesGame = async (userId) => {
-  await getCache(`mines : ${userId}`);
+  return await getCache(`mines : ${userId}`);
 };
 
 export const deleteMinesGame = async (userId) => {
-  await deleteCache(`mine : ${userId}`);
+  await deleteCache(`mines : ${userId}`);
 };

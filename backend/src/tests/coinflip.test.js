@@ -60,7 +60,10 @@ describe("flipCoin() service", () => {
 
 describe("POST /api/v2/games/coinflip", () => {
   const createCoinflipGame = async () => {
-    await Game.create({ name: "coinflip", type: "coinflip" });
+    const existing = await Game.findOne({ type: "coinflip" });
+    if (!existing) {
+      await Game.create({ name: "coinflip", type: "coinflip" });
+    }
   };
 
   beforeEach(async () => {

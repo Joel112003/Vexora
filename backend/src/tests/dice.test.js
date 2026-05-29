@@ -109,7 +109,10 @@ describe("rollDice() service", () => {
 //dice api integration testing
 describe("POST /api/v2/games/dice", () => {
   const createDiceGame = async () => {
-    await Game.create({ name: "dice", type: "dice" });
+    const existing = await Game.findOne({ type: "dice" });
+    if (!existing) {
+      await Game.create({ name: "dice", type: "dice" });
+    }
   };
 
   beforeEach(async () => {

@@ -6,7 +6,9 @@ export const createMineGames = (mineCount) => {
   //fisher-yates shuffle
   for (let i = positions.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    ([positions[i]], (positions[j] = positions[j]), positions[i]);
+    const temp = positions[i];
+    positions[i] = positions[j];
+    positions[j] = temp;
   }
 
   const mines = new Set(positions.slice(0, mineCount));
