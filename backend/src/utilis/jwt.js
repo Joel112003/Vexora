@@ -5,13 +5,13 @@ const REFRESH_SECRET = process.env.JWT_REFRESH_TOKEN || "test-refresh-secret";
 
 export const generateAccessToken = (userId) => {
   return jwt.sign({ id: userId }, ACCESS_SECRET, {
-    expiresIn: "15m",
+    expiresIn: "10m",
   });
 };
 
 export const generateRefreshToken = (userId) => {
   return jwt.sign({ id: userId }, REFRESH_SECRET, {
-    expiresIn: "7d",
+    expiresIn: "3d",
   });
 };
 

@@ -5,10 +5,10 @@ import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import xssClean from "xss-clean";
 import mongoSanitize from "express-mongo-sanitize";
-import rateLimit from "express-rate-limit";
 import authRoutes from "./routes/auth.routes.js";
 import gameRoutes from './routes/game.routes.js';
 import userRoutes from "./routes/user.routes.js"
+import { globalLimiter } from "./middlewares/rateLimiters.js";
 
 dotenv.config();
 
@@ -31,16 +31,6 @@ if (process.env.NODE_ENV !== "test") {
   app.use(xssClean());
 }
 
-const globalLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
-  message: {
-    success: false,
-    message: "Too many requests, please try again later.",
-  },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
 app.use("/api", globalLimiter);
 
 app.get("/health", (req, res) => {
