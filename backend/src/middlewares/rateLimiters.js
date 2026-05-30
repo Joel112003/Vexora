@@ -1,6 +1,11 @@
 import rateLimit from "express-rate-limit";
 
-export const globalLimiter = rateLimit({
+const isTestEnv = process.env.NODE_ENV === "test";
+const passThrough = (req, res, next) => next();
+
+const createLimiter = (options) => (isTestEnv ? passThrough : rateLimit(options));
+
+export const globalLimiter = createLimiter({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100,
   message: {
@@ -11,7 +16,7 @@ export const globalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-export const loginLimiter = rateLimit({
+export const loginLimiter = createLimiter({
   windowMs: 10 * 60 * 1000, // 10 minutes
   max: 5,
   message: {
@@ -22,7 +27,7 @@ export const loginLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-export const registerLimiter = rateLimit({
+export const registerLimiter = createLimiter({
   windowMs: 10 * 60 * 1000, // 10 minutes
   max: 3,
   message: {
@@ -33,7 +38,7 @@ export const registerLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-export const forgotPasswordLimiter = rateLimit({
+export const forgotPasswordLimiter = createLimiter({
   windowMs: 10 * 60 * 1000, // 10 minutes
   max: 3,
   message: {
@@ -44,7 +49,7 @@ export const forgotPasswordLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-export const resetPasswordLimiter = rateLimit({
+export const resetPasswordLimiter = createLimiter({
   windowMs: 10 * 60 * 1000, // 10 minutes
   max: 5,
   message: {

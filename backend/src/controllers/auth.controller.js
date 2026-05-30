@@ -240,16 +240,20 @@ export const resetPassword = async (req, res) => {
   try {
     const { token, password } = req.body;
 
+    if (!token) {
+      return res.status(400).json(apiResponse(false, "Token is required"));
+    }
+
     const hashedToken = crypto
       .createHash("sha256")
-      .update(resetToken)
+      .update(token)
       .digest("hex");
 
     const resetRecord = await PasswordReset.findOne({
       token: hashedToken,
     }).select("+token");
 
-    if (!resetRecord) {
+    if (!resetRecord || (resetRecord.expiresAt && resetRecord.expiresAt < new Date())) {
       return res
         .status(400)
         .json(apiResponse(false, "invalid or expired token"));
