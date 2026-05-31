@@ -3,36 +3,57 @@ import { useAuthStore }   from '../store/authStore';
 import { useBetHistory }  from '../hooks/useBetHistory';
 import { useBalance }     from '../hooks/useBalance';
 import GameCard from '../common/ui/GameCard';
+import coinImg from '../assets/Coin.jpeg';
+import minesImg from '../assets/Mine.jpeg';
+import diceImg from '../assets/Dice.jpeg';
+import crashImg from '../assets/Crash.jpeg';
 import StatCard           from '../common/ui/StatCard';
+
+const ease = [0.16, 1, 0.3, 1];
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+  },
+};
+const itemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease } },
+};
 
 // game cards config
 const GAMES = [
   {
     title:       'Dice',
     description: 'Pick a target and direction. Roll the dice and win up to 95x.',
-    path:        '/dice',
+    path:        '/app/dice',
     emoji:       '🎲',
+    image:       diceImg,
     color:       '#6c5ce7',
   },
   {
     title:       'Coinflip',
     description: 'Heads or tails. Simple 50/50 with 1.96x payout.',
-    path:        '/coinflip',
+    path:        '/app/coinflip',
     emoji:       '🪙',
+    image:       coinImg,
     color:       '#00cec9',
   },
   {
     title:       'Mines',
     description: 'Reveal safe tiles on a 5x5 grid. Cash out before hitting a mine.',
-    path:        '/mines',
+    path:        '/app/mines',
     emoji:       '💣',
+    image:       minesImg,
     color:       '#e17055',
   },
   {
     title:       'Crash',
     description: 'Watch the multiplier climb. Cash out before it crashes.',
-    path:        '/crash',
+    path:        '/app/crash',
     emoji:       '🚀',
+    image:       crashImg,
     color:       '#fdcb6e',
   },
 ];
@@ -40,7 +61,8 @@ const GAMES = [
 const DashboardPage = () => {
   const { user }            = useAuthStore();
   const { data: balance }   = useBalance();
-  const { data: bets = [] } = useBetHistory();
+  const { data: betsData } = useBetHistory();
+  const bets = Array.isArray(betsData) ? betsData : betsData?.bets ?? [];
 
   // calculate stats from bet history
   const wins   = bets.filter((b) => b.outcome === 'win').length;
@@ -48,28 +70,35 @@ const DashboardPage = () => {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0  }}
-      transition={{ duration: 0.3  }}
-      className="flex flex-col gap-8"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+      className="relative flex flex-col gap-12"
     >
+      <div className="pointer-events-none absolute -top-28 right-6 h-72 w-72 rounded-full bg-emerald-500/12 blur-[140px]" />
+      <div className="pointer-events-none absolute -bottom-24 left-6 h-72 w-72 rounded-full bg-emerald-400/12 blur-[160px]" />
 
       {/* Welcome header */}
-      <div>
-        <h1 className="text-2xl font-bold text-white mb-1">
-          Welcome back, {user?.username} 👋
-        </h1>
-        <p className="text-gray-400">
-          You have{' '}
-          <span className="text-yellow-400 font-semibold">
-            {(balance ?? user?.balance ?? 0).toLocaleString()} coins
-          </span>{' '}
-          to play with.
-        </p>
-      </div>
+      <motion.div variants={itemVariants} className="relative">
+        <div className="rounded-3xl border border-emerald-400/15 bg-gradient-to-br from-emerald-500/10 via-black/40 to-black/80 px-8 py-10 lg:px-10 lg:py-12">
+          <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-emerald-300/80">
+            — Vexora dashboard
+          </p>
+          <h1 className="font-serif text-4xl lg:text-6xl text-white mt-4 leading-[1.05]">
+            Welcome back, <span className="text-emerald-300 italic">{user?.username}</span>.
+          </h1>
+          <p className="text-sm lg:text-base text-zinc-300 mt-4 max-w-2xl">
+            You have{' '}
+            <span className="text-emerald-200 font-semibold">
+              {(balance ?? user?.balance ?? 0).toLocaleString()} coins
+            </span>{' '}
+            ready for the next play. Track performance, watch your streak, and jump into a table.
+          </p>
+        </div>
+      </motion.div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <motion.div variants={itemVariants} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <StatCard
           label="Balance"
           value={(balance ?? user?.balance ?? 0).toLocaleString()}
@@ -90,31 +119,42 @@ const DashboardPage = () => {
           value={totalWagered.toLocaleString()}
           sub="total coins"
         />
-      </div>
+      </motion.div>
 
       {/* Game cards */}
-      <div>
-        <h2 className="text-lg font-semibold text-white mb-4">Games</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <motion.div variants={itemVariants}>
+        <div className="flex items-end justify-between gap-4 mb-6">
+          <div>
+            <h2 className="font-serif text-3xl text-white">Featured games</h2>
+            <p className="text-sm text-zinc-400 mt-2">Choose a table and test your streak.</p>
+          </div>
+          <span className="hidden sm:inline-block text-xs text-emerald-300/80 uppercase tracking-[0.3em]">
+            Live tables
+          </span>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {GAMES.map((game) => (
             <GameCard key={game.path} {...game} />
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Recent bets */}
-      {bets.length > 0 && (
-        <div>
-          <h2 className="text-lg font-semibold text-white mb-4">Recent bets</h2>
+      <motion.div variants={itemVariants}>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="font-serif text-3xl text-white">Recent bets</h2>
+          <span className="text-xs text-zinc-500 uppercase tracking-[0.3em]">Last 10</span>
+        </div>
+        {bets.length > 0 ? (
           <div className="bg-brand-card border border-brand-border rounded-2xl overflow-hidden">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-brand-border">
-                  <th className="text-left text-gray-400 font-medium px-4 py-3">Game</th>
-                  <th className="text-right text-gray-400 font-medium px-4 py-3">Bet</th>
-                  <th className="text-right text-gray-400 font-medium px-4 py-3">Multiplier</th>
-                  <th className="text-right text-gray-400 font-medium px-4 py-3">Payout</th>
-                  <th className="text-right text-gray-400 font-medium px-4 py-3">Result</th>
+                  <th className="text-left text-zinc-500 font-mono text-[10px] uppercase tracking-[0.3em] px-4 py-4">Game</th>
+                  <th className="text-right text-zinc-500 font-mono text-[10px] uppercase tracking-[0.3em] px-4 py-4">Bet</th>
+                  <th className="text-right text-zinc-500 font-mono text-[10px] uppercase tracking-[0.3em] px-4 py-4">Multiplier</th>
+                  <th className="text-right text-zinc-500 font-mono text-[10px] uppercase tracking-[0.3em] px-4 py-4">Payout</th>
+                  <th className="text-right text-zinc-500 font-mono text-[10px] uppercase tracking-[0.3em] px-4 py-4">Result</th>
                 </tr>
               </thead>
               <tbody>
@@ -126,24 +166,24 @@ const DashboardPage = () => {
                       ${i % 2 === 0 ? '' : 'bg-white/[0.02]'}
                     `}
                   >
-                    <td className="px-4 py-3 text-white capitalize">
+                    <td className="px-4 py-4 text-white capitalize">
                       {bet.gameType}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-300">
+                    <td className="px-4 py-4 text-right text-zinc-300">
                       {bet.betAmount}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-300">
+                    <td className="px-4 py-4 text-right text-zinc-300">
                       {bet.multiplier > 0 ? `${bet.multiplier}x` : '—'}
                     </td>
-                    <td className="px-4 py-3 text-right text-gray-300">
+                    <td className="px-4 py-4 text-right text-zinc-300">
                       {bet.payout > 0 ? bet.payout : '—'}
                     </td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="px-4 py-4 text-right">
                       <span className={`
-                        inline-block px-2 py-0.5 rounded-full text-xs font-medium
+                        inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold uppercase tracking-[0.2em]
                         ${bet.outcome === 'win'
-                          ? 'bg-emerald-500/20 text-emerald-400'
-                          : 'bg-red-500/20 text-red-400'
+                          ? 'bg-emerald-500/15 text-emerald-300'
+                          : 'bg-rose-500/15 text-rose-300'
                         }
                       `}>
                         {bet.outcome}
@@ -154,9 +194,12 @@ const DashboardPage = () => {
               </tbody>
             </table>
           </div>
-        </div>
-      )}
-
+        ) : (
+          <div className="border border-dashed border-emerald-400/20 rounded-2xl p-8 text-center">
+            <p className="text-zinc-400">No bets yet. Pick a game to start your streak.</p>
+          </div>
+        )}
+      </motion.div>
     </motion.div>
   );
 };

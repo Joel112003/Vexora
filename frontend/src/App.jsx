@@ -3,6 +3,7 @@ import { useAuthStore }   from './store/authStore';
 import ProtectedRoute     from './components/ProtectedRoute';
 import LoginPage          from './pages/LoginPage';
 import RegisterPage       from './pages/RegisterPage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import DashboardPage      from './pages/DashboardPage';
 import DicePage           from './pages/DicePage';
 import CoinflipPage       from './pages/CoinflipPage';
@@ -24,11 +25,15 @@ function App() {
         {/* Public routes — redirect to dashboard if already logged in */}
         <Route
           path="/login"
-          element={user ? <Navigate to="/app" replace /> : <LoginPage />}
+          element={user ? <Navigate to="/app/dashboard" replace /> : <LoginPage />}
         />
         <Route
           path="/register"
-          element={user ? <Navigate to="/app" replace /> : <RegisterPage />}
+          element={user ? <Navigate to="/app/dashboard" replace /> : <RegisterPage />}
+        />
+        <Route
+          path="/forgot-password"
+          element={user ? <Navigate to="/app/dashboard" replace /> : <ForgotPasswordPage />}
         />
 
         {/* Protected routes — all wrapped in MainLayout */}
@@ -41,7 +46,8 @@ function App() {
           }
         >
           {/* index = default child route at "/app" */}
-          <Route index element={<DashboardPage />} />
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<DashboardPage />} />
           <Route path="dice"    element={<DicePage />} />
           <Route path="coinflip" element={<CoinflipPage />} />
           <Route path="mines"   element={<MinesPage />} />

@@ -3,7 +3,7 @@ import Navbar      from '../components/Navbar';
 
 const MainLayout = () => {
   return (
-    <div className="min-h-screen bg-brand-bg flex flex-col">
+    <div className="min-h-screen flex flex-col bg-black bg-gradient-to-b from-emerald-950/40 via-black to-black">
 
       <Navbar />
 

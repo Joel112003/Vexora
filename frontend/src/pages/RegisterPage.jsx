@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Zap, Trophy } from "lucide-react";
 import { useRegister } from "../hooks/useAuth";
@@ -20,7 +20,18 @@ const steps = [
 function RegisterPage() {
   const [form, setForm] = useState({ username: "", email: "", password: "", confirmPassword: "" });
   const [errors, setErrors] = useState({});
+  const [toast, setToast] = useState(null);
+  const toastTimerRef = useRef(null);
   const { mutate: register, isPending, error } = useRegister();
+  const navigate = useNavigate();
+
+  const showToast = (tone, message, ttl = 2200) => {
+    if (toastTimerRef.current) {
+      clearTimeout(toastTimerRef.current);
+    }
+    setToast({ tone, message });
+    toastTimerRef.current = setTimeout(() => setToast(null), ttl);
+  };
 
   const handleChange = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -42,7 +53,12 @@ function RegisterPage() {
     if (!validate()) return;
     const payload = { ...form };
     delete payload.confirmPassword;
-    register(payload);
+    register(payload, {
+      onSuccess: () => {
+        showToast("success", "Successfully registered. Redirecting to login...", 2000);
+        setTimeout(() => navigate("/login", { replace: true }), 1400);
+      },
+    });
   };
 
   return (
@@ -51,6 +67,46 @@ function RegisterPage() {
       style={{ fontFamily: "'Geist', ui-sans-serif, system-ui" }}
     >
       <PublicNavbar />
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: 0.25, ease }}
+            className="fixed top-6 right-6 z-[60]"
+          >
+            <div
+              className="flex items-center gap-3 rounded-xl px-4 py-3 border"
+              style={{
+                background: "linear-gradient(135deg, rgba(12,16,14,0.98), rgba(8,12,10,0.98))",
+                borderColor: toast.tone === "success" ? "rgba(52,211,153,0.4)" : "rgba(244,63,94,0.35)",
+                boxShadow:
+                  toast.tone === "success"
+                    ? "0 18px 45px -22px rgba(52,211,153,0.45)"
+                    : "0 18px 45px -22px rgba(244,63,94,0.5)",
+              }}
+            >
+              <span
+                className={
+                  toast.tone === "success"
+                    ? "size-1.5 rounded-full bg-emerald-300"
+                    : "size-1.5 rounded-full bg-rose-400"
+                }
+              />
+              <p
+                className={
+                  toast.tone === "success"
+                    ? "text-[12px] text-emerald-100 tracking-[0.02em]"
+                    : "text-[12px] text-rose-200 tracking-[0.02em]"
+                }
+              >
+                {toast.message}
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <style>{`
         .font-serif { font-family: 'Instrument Serif', ui-serif, Georgia, serif; }
         .font-mono { font-family: 'JetBrains Mono', ui-monospace, monospace; }

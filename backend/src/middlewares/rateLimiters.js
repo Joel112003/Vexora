@@ -18,7 +18,7 @@ export const globalLimiter = createLimiter({
 
 export const loginLimiter = createLimiter({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 5,
+  max: 100,
   message: {
     success: false,
     message: "Too many login attempts. Please try again later.",
@@ -29,7 +29,7 @@ export const loginLimiter = createLimiter({
 
 export const registerLimiter = createLimiter({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 3,
+  max: 10,
   message: {
     success: false,
     message: "Too many signup attempts. Please try again later.",
@@ -40,7 +40,7 @@ export const registerLimiter = createLimiter({
 
 export const forgotPasswordLimiter = createLimiter({
   windowMs: 10 * 60 * 1000, // 10 minutes
-  max: 3,
+  max: 5,
   message: {
     success: false,
     message: "Too many password reset attempts. Please try again later.",

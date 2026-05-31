@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, ArrowRight, ShieldCheck, Zap, Trophy } from "lucide-react";
 import rouletteBg from "../assets/vexora-roulette.jpg";
@@ -6,6 +7,8 @@ import brandLogo from "../assets/vexora_brand.jpeg";
 import PublicNavbar from "../components/PublicNavbar";
 import Input from "../common/ui/Input";
 import Button from "../common/ui/Button";
+import { useLogin } from "../hooks/useAuth";
+import { useAuthStore } from "../store/authStore";
 
 const ease = [0.16, 1, 0.3, 1];
 
@@ -18,11 +21,12 @@ const steps = [
 function LoginPage() {
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
-  const [serverError, setServerError] = useState(null);
   const [toast, setToast] = useState(null);
   const toastTimerRef = useRef(null);
-  const [pending, setPending] = useState(false);
   const [showPw, setShowPw] = useState(false);
+  const { mutate: login, isPending, error: loginError } = useLogin();
+  const navigate = useNavigate();
+  const { setAuth } = useAuthStore();
 
   const showToast = (tone, message, ttl = 2400) => {
     if (toastTimerRef.current) {
@@ -39,15 +43,23 @@ function LoginPage() {
     if (!form.password) next.password = "Password is required";
     setErrors(next);
     if (Object.keys(next).length) return;
-    setPending(true);
-    setServerError(null);
-    showToast("success", "Credentials accepted. Signing you in...", 1800);
-    setTimeout(() => {
-      setPending(false);
-      const message = "Invalid credentials. Please verify and try again.";
-      setServerError(message);
-      showToast("error", message, 2600);
-    }, 900);
+    login(
+      { email: form.email, password: form.password },
+      {
+        onSuccess: (res) => {
+          showToast("success", "Credentials accepted. Signing you in...", 1800);
+          const { accessToken, user } = res.data.data;
+          setTimeout(() => {
+            setAuth(user, accessToken);
+            navigate("/app/dashboard", { replace: true });
+          }, 900);
+        },
+        onError: (err) => {
+          const message = err?.response?.data?.message || "Invalid credentials. Please verify and try again.";
+          showToast("error", message, 2600);
+        },
+      },
+    );
   };
 
   return (
@@ -219,7 +231,7 @@ function LoginPage() {
             </motion.div>
 
             <AnimatePresence>
-              {serverError && (
+              {loginError && (
                 <motion.div
                   initial={{ opacity: 0, height: 0, marginBottom: 0 }}
                   animate={{ opacity: 1, height: "auto", marginBottom: 20 }}
@@ -231,7 +243,7 @@ function LoginPage() {
                     transition={{ duration: 0.4 }}
                     className="p-3 rounded-md bg-rose-500/10 border border-rose-500/30 text-[13px] text-rose-300"
                   >
-                    {serverError}
+                    {loginError?.response?.data?.message || "Invalid credentials. Please verify and try again."}
                   </motion.div>
                 </motion.div>
               )}
@@ -270,9 +282,9 @@ function LoginPage() {
                   <label htmlFor="password" className="font-mono font-semibold text-[10px] uppercase tracking-[0.25em] text-zinc-400 ml-0.5">
                     Password
                   </label>
-                  <a href="#" className="text-[11px] text-emerald-300 hover:text-emerald-200 transition-colors">
+                  <Link to="/forgot-password" className="text-[11px] text-emerald-300 hover:text-emerald-200 transition-colors">
                     Forgot password?
-                  </a>
+                  </Link>
                 </div>
                 <Input
                   id="password"
@@ -304,7 +316,7 @@ function LoginPage() {
               >
                 <Button
                   type="submit"
-                  loading={pending}
+                  loading={isPending}
                   fullWidth
                   height={42}
                   paddingX={18}

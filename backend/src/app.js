@@ -3,8 +3,7 @@ import helmet from "helmet";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import xssClean from "xss-clean";
-import mongoSanitize from "express-mongo-sanitize";
+import { sanitizeRequest } from "./middlewares/sanitize.js";
 import authRoutes from "./routes/auth.routes.js";
 import gameRoutes from './routes/game.routes.js';
 import userRoutes from "./routes/user.routes.js"
@@ -26,10 +25,7 @@ app.use(
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-if (process.env.NODE_ENV !== "test") {
-  app.use(mongoSanitize());
-  app.use(xssClean());
-}
+app.use(sanitizeRequest());
 
 app.use("/api", globalLimiter);
 
