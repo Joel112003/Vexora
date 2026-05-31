@@ -73,7 +73,7 @@ const DashboardPage = () => {
       initial="hidden"
       animate="visible"
       variants={containerVariants}
-      className="relative flex flex-col gap-12"
+      className="relative flex flex-col gap-12 max-w-6xl w-full mx-auto px-4 py-8"
     >
       <div className="pointer-events-none absolute -top-28 right-6 h-72 w-72 rounded-full bg-emerald-500/12 blur-[140px]" />
       <div className="pointer-events-none absolute -bottom-24 left-6 h-72 w-72 rounded-full bg-emerald-400/12 blur-[160px]" />

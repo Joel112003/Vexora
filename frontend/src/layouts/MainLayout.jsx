@@ -3,14 +3,12 @@ import Navbar      from '../components/Navbar';
 
 const MainLayout = () => {
   return (
-    <div className="min-h-screen flex flex-col bg-black bg-gradient-to-b from-emerald-950/40 via-black to-black">
-
+    <div className="flex flex-col" style={{ background: '#050c07', minHeight: '100dvh' }}>
       <Navbar />
-
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
+      {/* Each page owns its own width/padding/height constraints */}
+      <main className="flex-1 flex flex-col">
         <Outlet />
       </main>
-
     </div>
   );
 };
