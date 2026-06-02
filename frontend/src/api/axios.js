@@ -39,10 +39,10 @@ api.interceptors.response.use(
     const originalRequest = error.config;
     const requestUrl = originalRequest?.url || "";
     const isAuthRequest =
-      requestUrl.includes("/auth/login") ||
-      requestUrl.includes("/auth/register") ||
-      requestUrl.includes("/auth/logout") ||
-      requestUrl.includes("/auth/refresh");
+      requestUrl.includes("/v1/auth/login") ||
+      requestUrl.includes("/v1/auth/register") ||
+      requestUrl.includes("/v1/auth/logout") ||
+      requestUrl.includes("/v1/auth/refresh");
 
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
       if (isRefreshing) {
@@ -60,7 +60,7 @@ api.interceptors.response.use(
 
       try {
         const { data } = await axios.post(
-          `${import.meta.env.VITE_API_URL}/auth/refresh`,
+          `${import.meta.env.VITE_API_URL}/v1/auth/refresh`,
           {},
           { withCredentials: true },
         );
