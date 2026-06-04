@@ -60,6 +60,7 @@ function LoginPage() {
         },
       },
     );
+    setForm((prev) => ({ ...prev, password: "" }));
   };
 
   return (

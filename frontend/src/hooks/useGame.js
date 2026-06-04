@@ -8,7 +8,6 @@ export const useDice = () => {
 
   return useMutation({
     mutationFn: (data) => api.post('/v2/games/dice', data),
-
     onSuccess: (response) => {
       const { balance } = response.data.data;
       updateBalance(balance);
@@ -24,7 +23,6 @@ export const useCoinflip = () => {
 
   return useMutation({
     mutationFn: (data) => api.post('/v2/games/coinflip', data),
-
     onSuccess: (response) => {
       const { balance } = response.data.data;
       updateBalance(balance);
@@ -37,6 +35,12 @@ export const useCoinflip = () => {
 export const useMinesStart = () => {
   return useMutation({
     mutationFn: (data) => api.post('/v2/games/mines/start', data),
+    onSuccess: (_response, variables) => {
+      const { user, updateBalance } = useAuthStore.getState();
+      if (user?.balance != null) {
+        updateBalance(parseFloat((user.balance - variables.betAmount).toFixed(2)));
+      }
+    },
   });
 };
 
@@ -46,11 +50,10 @@ export const useMinesReveal = () => {
 
   return useMutation({
     mutationFn: (data) => api.post('/v2/games/mines/reveal', data),
-
     onSuccess: (response) => {
-      // only update balance if game is over (mine hit)
-      if (!response.data.success && response.data.data?.balance) {
-        updateBalance(response.data.data.balance);
+      const body = response.data;
+      if (body.data?.balance != null) {
+        updateBalance(body.data.balance);
         queryClient.invalidateQueries({ queryKey: ['balance', user?.id] });
         queryClient.invalidateQueries({ queryKey: ['betHistory', user?.id] });
       }
@@ -64,7 +67,6 @@ export const useMinesCashout = () => {
 
   return useMutation({
     mutationFn: () => api.post('/v2/games/mines/cashout'),
-
     onSuccess: (response) => {
       const { balance } = response.data.data;
       updateBalance(balance);

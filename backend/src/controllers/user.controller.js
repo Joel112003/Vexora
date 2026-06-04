@@ -8,12 +8,10 @@ import {
   invalidatedBalance,
 } from "../cache/index.js";
 
-//get-balance
 export const getBalance = async (req, res) => {
   try {
     const userId = req.user._id.toString();
 
-    //check redis first
     const cached = await getCachedBalance(userId);
     if (cached !== null) {
       return res.json(
@@ -24,13 +22,11 @@ export const getBalance = async (req, res) => {
       );
     }
 
-    //not in cache - go to mongodb
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json(apiResponse(false, "User not found"));
     }
 
-    //store in redis for next time
     await cacheBalance(userId, user.balance);
     res.json(
       apiResponse(true, "Balance fetched", {
@@ -43,12 +39,10 @@ export const getBalance = async (req, res) => {
   }
 };
 
-//get-bet_history
 export const getBetHistory = async (req, res) => {
   try {
     const userId = req.user._id.toString();
 
-    //check redis first
     const cached = await getCachedBetHistory(userId);
     if (cached) {
       return res.json(
@@ -59,13 +53,11 @@ export const getBetHistory = async (req, res) => {
       );
     }
 
-    //not in cache
     const bets = await Bet.find({ userId })
       .sort({ createdAt: -1 })
       .limit(10)
       .lean();
 
-    //store in redis for next time
     await cacheBetHistory(userId, bets);
 
     res.json(
@@ -84,23 +76,21 @@ export const addDemoCoins = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     if (user.balance >= MAX_BALANCE) {
-      return res
-        .json(400)
-        .json(
-          apiResponse(
-            false,
-            `You already have ${user.balance} coins. Please some games first`,
-          ),
-        );
-
-      user.balance = Math.min(user.balance + TOPUP_AMOUNT, MAX_BALANCE);
-      await user.save();
-
-      await invalidatedBalance(req.user._id.toString());
-      res.json(
-        apiResponse(true, "Demo coins added", { balance: user.balance }),
+      return res.status(400).json(
+        apiResponse(
+          false,
+          `You already have ${user.balance} coins. Please play some games first`,
+        ),
       );
     }
+
+    user.balance = Math.min(user.balance + TOPUP_AMOUNT, MAX_BALANCE);
+    await user.save();
+
+    await invalidatedBalance(req.user._id.toString());
+    res.json(
+      apiResponse(true, "Demo coins added", { balance: user.balance }),
+    );
   } catch (error) {
     res.status(500).json(apiResponse(false, error.message));
   }

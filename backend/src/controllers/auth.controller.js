@@ -13,7 +13,7 @@ const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "strict",
-  maxAge: 3 * 24 * 60 * 60 * 1000, // 3 days in ms
+  maxAge: 3 * 24 * 60 * 60 * 1000,
 };
 
 export const register = async (req, res) => {
@@ -84,7 +84,6 @@ export const login = async (req, res) => {
     const accessToken = generateAccessToken(user._id);
     const refreshToken = generateRefreshToken(user._id);
 
-    // de-activate all the session for this user and create a new one
     await Session.updateMany({ userId: user._id }, { isActive: false });
 
     await Session.create({
@@ -148,15 +147,24 @@ export const refreshToken = async (req, res) => {
     const newAccessToken = generateAccessToken(user._id);
     const newRefreshToken = generateRefreshToken(user._id);
 
-    // now old refresh token is been replaced
     session.refreshToken = newRefreshToken;
     session.expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     await session.save();
 
     res.cookie("refreshToken", newRefreshToken, COOKIE_OPTIONS);
+    const safeUser = {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      balance: user.balance,
+      role: user.role,
+    };
 
     res.json(
-      apiResponse(true, "Token refreshed", { accessToken: newAccessToken }),
+      apiResponse(true, "Token refreshed", {
+        accessToken: newAccessToken,
+        user: safeUser,
+      }),
     );
   } catch (error) {
     return res
@@ -244,16 +252,16 @@ export const resetPassword = async (req, res) => {
       return res.status(400).json(apiResponse(false, "Token is required"));
     }
 
-    const hashedToken = crypto
-      .createHash("sha256")
-      .update(token)
-      .digest("hex");
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
     const resetRecord = await PasswordReset.findOne({
       token: hashedToken,
     }).select("+token");
 
-    if (!resetRecord || (resetRecord.expiresAt && resetRecord.expiresAt < new Date())) {
+    if (
+      !resetRecord ||
+      (resetRecord.expiresAt && resetRecord.expiresAt < new Date())
+    ) {
       return res
         .status(400)
         .json(apiResponse(false, "invalid or expired token"));

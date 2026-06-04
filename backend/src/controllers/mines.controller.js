@@ -4,9 +4,33 @@ import {
   createMineGames,
   calculateMinesMultiplier,
   revealTile,
+  buildSafeGrid,
+  revealAllMines,
 } from "../services/mines.service.js";
 import { deleteMinesGame, saveMinesGame, getMinesGame } from "../cache/index.js";
 import { Game } from "../models/index.js";
+
+const GRID_SIZE = 25;
+
+export const swapFirstTileMine = (grid, index, mineCount) => {
+  if (mineCount >= GRID_SIZE - 1) return grid;
+  const currentTile = grid[index];
+  if (!currentTile.isMine) return grid;
+
+  const swapIndex = grid.findIndex((tile) => !tile.isMine);
+  if (swapIndex !== -1) {
+    grid[swapIndex] = { ...grid[swapIndex], isMine: true };
+    grid[index]     = { ...currentTile, isMine: false };
+  }
+  return grid;
+};
+
+export const formatRevealResponse = ({ safeGrid, multiplier, potentialPayout, revealed }) => ({
+  grid: safeGrid,
+  multiplier,
+  potentialPayout,
+  revealed,
+});
 
 export const startMines = async (req, res) => {
   try {
@@ -17,23 +41,19 @@ export const startMines = async (req, res) => {
       return res.status(400).json(apiResponse(false, "Game not found"));
     }
 
-    //create grid with random mine positions
     const grid = createMineGames(mineCount);
 
-    // Save game data in Redis so it doesn't reset after server restart and can be used by all servers.
     await saveMinesGame(req.user._id.toString(), {
       grid,
       gameId: game._id,
       mineCount,
       betAmount,
-      revealed: 0, //revealed how many safe tiles are revealed so farrr..
+      revealed: 0,
     });
-
-    const safeGrid = grid.map(({ index, revealed }) => ({ index, revealed }));
 
     res.json(
       apiResponse(true, "Mine game has started!", {
-        grid: safeGrid,
+        grid: buildSafeGrid(grid),
         betAmount,
         mineCount,
       }),
@@ -52,7 +72,7 @@ export const revealMineTile = async (req, res) => {
     if (!game) {
       return res
         .status(401)
-        .json(apiResponse(false, "No active games , Start a new one!!"));
+        .json(apiResponse(false, "No active games, start a new one!"));
     }
 
     const currentTile = game.grid[index];
@@ -60,18 +80,13 @@ export const revealMineTile = async (req, res) => {
       throw new Error("Tiles already revealed");
     }
 
-    if (currentTile.isMine && game.revealed === 0) {
-      const swapIndex = game.grid.findIndex((tile) => !tile.isMine);
-      if (swapIndex !== -1) {
-        game.grid[swapIndex].isMine = true;
-        currentTile.isMine = false;
-      }
+    if (game.revealed === 0) {
+      game.grid = swapFirstTileMine(game.grid, index, game.mineCount);
     }
 
     const { tile, grid } = revealTile({ grid: game.grid, index });
 
     if (tile.isMine) {
-      //delete from redis - game is over.
       await deleteMinesGame(userId);
 
       const { balance } = await placeBet({
@@ -89,34 +104,61 @@ export const revealMineTile = async (req, res) => {
         },
       });
 
-      // now reveal the full grid including the mines
       return res.json(
-        apiResponse(false, "You hit a mine1", {
-          grid,
+        apiResponse(false, "You hit a mine!", {
+          grid: revealAllMines(grid),
           balance,
         }),
       );
     }
 
-    //updated the game state in redis with new revealed count and grid
     game.revealed += 1;
     game.grid = grid;
+
+    const multiplier      = calculateMinesMultiplier(game.revealed, game.mineCount);
+    const potentialPayout = parseFloat((game.betAmount * multiplier).toFixed(2));
+    const safeTilesTotal  = GRID_SIZE - game.mineCount;
+
+    if (game.revealed === safeTilesTotal) {
+      await deleteMinesGame(userId);
+
+      const { bet, balance } = await placeBet({
+        userId: req.user._id,
+        gameId: game.gameId,
+        gameType: "mines",
+        betAmount: game.betAmount,
+        multiplier,
+        payout: potentialPayout,
+        outcome: "win",
+        gameData: { mineCount: game.mineCount, revealed: game.revealed },
+      });
+
+      return res.json(
+        apiResponse(true, "All safe tiles revealed! Auto cashout!", {
+          grid: buildSafeGrid(grid),
+          multiplier,
+          potentialPayout,
+          revealed: game.revealed,
+          autoWin: true,
+          balance,
+          betId: bet._id,
+        }),
+      );
+    }
+
     await saveMinesGame(userId, game);
 
-    //calculate the multiplier based on the mine revealed so far
-    const multiplier = calculateMinesMultiplier(game.revealed, game.mineCount);
-    const potentialPayout = parseFloat(
-      (game.betAmount * multiplier).toFixed(2),
-    );
-
-    const safeGrid = grid.map(({ index, revealed }) => ({ index, revealed }));
     res.json(
-      apiResponse(true, "Safe!", {
-        grid: safeGrid,
-        multiplier,
-        potentialPayout,
-        revealed: game.revealed,
-      }),
+      apiResponse(
+        true,
+        "Safe!",
+        formatRevealResponse({
+          safeGrid: buildSafeGrid(grid),
+          multiplier,
+          potentialPayout,
+          revealed: game.revealed,
+        }),
+      ),
     );
   } catch (error) {
     res.status(400).json(apiResponse(false, error.message));
@@ -137,15 +179,12 @@ export const cashoutMines = async (req, res) => {
     if (game.revealed === 0) {
       return res
         .status(400)
-        .json(
-          apiResponse(false, "Reveal atleast one tile before cashing out!"),
-        );
+        .json(apiResponse(false, "Reveal at least one tile before cashing out!"));
     }
 
     const multiplier = calculateMinesMultiplier(game.revealed, game.mineCount);
-    const payout = parseFloat((game.betAmount * multiplier).toFixed(2));
-    
-    // delete from Redis before saving bet
+    const payout     = parseFloat((game.betAmount * multiplier).toFixed(2));
+
     await deleteMinesGame(userId);
 
     const { bet, balance } = await placeBet({

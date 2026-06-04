@@ -6,7 +6,7 @@ import {
   expect,
   afterEach,
 } from "@jest/globals";
-import { placeBet } from "../services/game.service.js";
+import { placeBet, deductAndCredit } from "../services/game.service.js";
 import { closeDB, clearDB, setupDB } from "./setup.js";
 import { Game, User } from "../models/index.js";
 
@@ -30,7 +30,32 @@ const createGame = async (type = "dice") => {
   });
 };
 
-describe("placeBot()", () => {
+// ── deductAndCredit — pure unit tests (no DB / Redis needed) ─────────────────
+describe("deductAndCredit()", () => {
+  it("deducts the bet from the balance on a loss", () => {
+    expect(deductAndCredit(1000, 100, "loss", 0)).toBe(900);
+  });
+
+  it("deducts bet then credits payout on a win", () => {
+    // 1000 - 100 bet + 200 payout = 1100
+    expect(deductAndCredit(1000, 100, "win", 200)).toBe(1100);
+  });
+
+  it("throws when balance is insufficient", () => {
+    expect(() => deductAndCredit(50, 100, "loss", 0)).toThrow("In-sufficient Balance");
+  });
+
+  it("handles exact-balance bets without throwing", () => {
+    expect(deductAndCredit(100, 100, "loss", 0)).toBe(0);
+  });
+
+  it("rounds result to 2 decimal places", () => {
+    expect(deductAndCredit(100, 33.33, "win", 65.34)).toBe(132.01);
+  });
+});
+
+// ── placeBet — integration tests (DB + Redis via in-memory server) ────────────
+describe("placeBet()", () => {
   it("should deduct bet amount from user balance", async () => {
     const user = await createUser(1000);
     const game = await createGame("dice");

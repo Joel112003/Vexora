@@ -19,14 +19,14 @@ function PublicNavbar() {
             </div>
           </div>
           <div className="flex flex-col leading-none">
-            <span className="font-[\"Playfair Display\"] text-2xl tracking-tight text-white">Vexora</span>
-            <span className="text-[10px] font-[\"Space Grotesk\"] uppercase tracking-[0.35em] text-emerald-300/70">
+            <span className="font-['Playfair Display'] text-2xl tracking-tight text-white">Vexora</span>
+            <span className="text-[10px] font-['Space Grotesk'] uppercase tracking-[0.35em] text-emerald-300/70">
               Edge play
             </span>
           </div>
         </Link>
 
-        <div className="flex items-center gap-3 font-[\"Space Grotesk\"]">
+        <div className="flex items-center gap-3 font-['Space Grotesk']">
           {!isLogin && !isRegister && (
             <Link
               to="/login"

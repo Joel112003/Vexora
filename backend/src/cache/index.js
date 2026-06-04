@@ -13,8 +13,6 @@ export const deleteCache = async (key) => {
   await redisClient.del(key);
 };
 
-//balance cache
-// balance is checked everytime when the page reloads or when the games starts invalidated the balance
 const BALANCE_TTL = 60;
 
 export const cacheBalance = async (userId, balance) => {
@@ -29,8 +27,8 @@ export const invalidatedBalance = async (userId) => {
   await deleteCache(`balance : ${userId}`);
 };
 
-// bet history cache
 const BET_HISTORY_TTL = 30;
+
 export const cacheBetHistory = async (userId, bets) => {
   await setCache(`bet-history : ${userId}`, bets, BET_HISTORY_TTL);
 };
@@ -43,12 +41,12 @@ export const invalidatedBetHistory = async (userId) => {
   await deleteCache(`bet-history : ${userId}`);
 };
 
-//mines game stats
 const MINES_TTL = 60 * 30;
 
 export const saveMinesGame = async (userId, gameStats) => {
   await setCache(`mines : ${userId}`, gameStats, MINES_TTL);
 };
+
 export const getMinesGame = async (userId) => {
   return await getCache(`mines : ${userId}`);
 };

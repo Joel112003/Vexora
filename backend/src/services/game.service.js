@@ -1,6 +1,40 @@
 import { User, Bet } from "../models/index.js";
 import { invalidatedBalance, invalidatedBetHistory } from "../cache/index.js";
 
+export const deductAndCredit = (currentBalance, betAmount, outcome, payout) => {
+  if (currentBalance < betAmount) throw new Error("In-sufficient Balance");
+  let balance = currentBalance - betAmount;
+  if (outcome === "win") balance += payout;
+  return parseFloat(balance.toFixed(2));
+};
+
+export const recordBet = async ({
+  userId,
+  gameId,
+  betAmount,
+  gameType,
+  multiplier,
+  payout,
+  outcome,
+  gameData,
+}) => {
+  const bet = await Bet.create({
+    userId,
+    gameId,
+    betAmount,
+    gameType,
+    multiplier,
+    payout,
+    outcome,
+    gameData,
+  });
+
+  await invalidatedBalance(userId.toString());
+  await invalidatedBetHistory(userId.toString());
+
+  return bet;
+};
+
 export const placeBet = async ({
   userId,
   gameId,
@@ -13,19 +47,11 @@ export const placeBet = async ({
 }) => {
   const user = await User.findById(userId);
   if (!user) throw new Error("User not found!");
-  if (user.balance < betAmount) throw new Error("In-sufficient Balance");
 
-  //deduct bet
-  user.balance -= betAmount;
-
-  //credit winning if won
-  if (outcome == "win") {
-    user.balance += payout;
-  }
-
+  user.balance = deductAndCredit(user.balance, betAmount, outcome, payout);
   await user.save();
 
-  const bet = await Bet.create({
+  const bet = await recordBet({
     userId,
     gameId,
     betAmount,
@@ -35,10 +61,6 @@ export const placeBet = async ({
     outcome,
     gameData,
   });
-
-  // invalidated cached balance and history so the next read gets fresh data
-  await invalidatedBalance(userId.toString());
-  await invalidatedBetHistory(userId.toString());
 
   return { bet, balance: user.balance };
 };
