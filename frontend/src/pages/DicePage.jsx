@@ -1,4 +1,4 @@
-import { useCallback, useState }  from 'react';
+import { useState }              from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore }            from '../store/authStore';
 import { useBalance }              from '../hooks/useBalance';
@@ -7,26 +7,8 @@ import DirectionToggle             from '../components/dice/DirectionToggle';
 import DiceSlider                  from '../components/dice/DiceSlider';
 import BetAmount                   from '../components/dice/BetAmount';
 import StatsBar                    from '../components/dice/StatsBar';
-import DiceModal                   from '../components/dice/DiceModal';
 
 const ease = [0.16, 1, 0.3, 1];
-
-/* ── History pill ── */
-const Pill = ({ roll, win }) => (
-  <motion.span
-    initial={{ opacity: 0, scale: 0.5 }}
-    animate={{ opacity: 1, scale: 1 }}
-    className={`
-      inline-block px-2 py-0.5 rounded text-[10px] font-mono font-bold tabular-nums border flex-shrink-0
-      ${win
-        ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
-        : 'bg-red-500/10    text-red-400    border-red-500/15'
-      }
-    `}
-  >
-    {roll}
-  </motion.span>
-);
 
 /* ── Error banner ── */
 const ErrorBanner = ({ message }) => (
@@ -42,8 +24,8 @@ const ErrorBanner = ({ message }) => (
 
 const DicePage = () => {
   /* ── Real data ── */
-  const { user }                     = useAuthStore();
-  const { data: liveBalance }        = useBalance();
+  const { user }                        = useAuthStore();
+  const { data: liveBalance }           = useBalance();
   const { mutate: rollDice, isPending } = useDice();
 
   const balance = liveBalance ?? user?.balance ?? 0;
@@ -52,16 +34,14 @@ const DicePage = () => {
   const [betAmount,  setBetAmount]  = useState(10);
   const [target,     setTarget]     = useState(50);
   const [direction,  setDirection]  = useState('over');
-  const [modal,      setModal]      = useState(null);
-  const [history,    setHistory]    = useState([]);
   const [error,      setError]      = useState(null);
+  // Tracks the most recent roll so DiceSlider can show the result dot + win effects
+  const [lastResult, setLastResult] = useState({ roll: null, win: null });
 
   /* ── Computed stats (shown before roll) ── */
   const winChance  = direction === 'over' ? 100 - target : target - 1;
   const multiplier = parseFloat((95 / Math.max(winChance, 0.1)).toFixed(4));
   const payout     = parseFloat((betAmount * multiplier).toFixed(2));
-
-  const closeModal = useCallback(() => setModal(null), []);
 
   /* ── Roll handler — real API ── */
   const onRoll = () => {
@@ -74,14 +54,7 @@ const DicePage = () => {
         onSuccess: (res) => {
           const data = res.data.data;
           // API returns: { roll, win, multiplier, payout, balance }
-          const outcome = {
-            roll:       data.roll,
-            win:        data.win,
-            multiplier: data.multiplier,
-            payout:     data.payout,
-          };
-            setHistory((h) => [{ roll: outcome.roll, win: outcome.win, id: Date.now() }, ...h].slice(0, 12));
-          setModal({ id: Date.now(), result: outcome, direction, target, win: outcome.win });
+          setLastResult({ roll: data.roll, win: data.win });
         },
         onError: (err) => {
           const msg = err?.response?.data?.message ?? 'Roll failed. Please try again.';
@@ -93,9 +66,6 @@ const DicePage = () => {
 
   return (
     <>
-      {/* ── Modal overlay ── */}
-      <DiceModal notification={modal} onClose={closeModal} />
-
       {/* ── Fixed ambient background ── */}
       <div className="pointer-events-none fixed inset-0 -z-10">
         <div className="absolute inset-0 bg-[#050c07]" />
@@ -181,6 +151,8 @@ const DicePage = () => {
                 onChange={setTarget}
                 direction={direction}
                 disabled={isPending}
+                win={lastResult.win}
+                resultRoll={lastResult.roll}
               />
 
               <StatsBar
@@ -240,26 +212,6 @@ const DicePage = () => {
 
             </div>
           </div>
-
-          {/* ── History strip ── */}
-          <AnimatePresence>
-            {history.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="flex items-center gap-2 px-1 overflow-x-auto"
-                style={{ scrollbarWidth: 'none' }}
-              >
-                <span className="text-[8px] font-mono uppercase tracking-[0.45em] text-zinc-700 flex-shrink-0">
-                  History
-                </span>
-                {history.map((h) => (
-                  <Pill key={h.id} roll={h.roll} win={h.win} />
-                ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* ── Footer ── */}
           <p className="text-center text-[9px] font-mono text-zinc-800 uppercase tracking-[0.35em]">

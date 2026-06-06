@@ -11,7 +11,7 @@ export const useDice = () => {
     onSuccess: (response) => {
       const { balance } = response.data.data;
       updateBalance(balance);
-      queryClient.invalidateQueries({ queryKey: ['balance', user?.id] });
+      // balance is updated optimistically above; no extra fetch needed
       queryClient.invalidateQueries({ queryKey: ['betHistory', user?.id] });
     },
   });
@@ -26,7 +26,6 @@ export const useCoinflip = () => {
     onSuccess: (response) => {
       const { balance } = response.data.data;
       updateBalance(balance);
-      queryClient.invalidateQueries({ queryKey: ['balance', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['betHistory', user?.id] });
     },
   });
@@ -54,8 +53,7 @@ export const useMinesReveal = () => {
       const body = response.data;
       if (body.data?.balance != null) {
         updateBalance(body.data.balance);
-        queryClient.invalidateQueries({ queryKey: ['balance', user?.id] });
-        queryClient.invalidateQueries({ queryKey: ['betHistory', user?.id] });
+        // no balance invalidation — updateBalance() is sufficient per-reveal
       }
     },
   });
@@ -70,7 +68,6 @@ export const useMinesCashout = () => {
     onSuccess: (response) => {
       const { balance } = response.data.data;
       updateBalance(balance);
-      queryClient.invalidateQueries({ queryKey: ['balance', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['betHistory', user?.id] });
     },
   });
