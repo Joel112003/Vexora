@@ -2,110 +2,127 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useMutation, useQueryClient }               from '@tanstack/react-query';
 import { useAuthStore }                              from '../store/authStore';
 import api                                           from '../api/axios';
-import socket                                        from '../socket/socket';
+import { socket }                                    from '../socket/socket';
+
 
 export const useCrash = () => {
   const queryClient             = useQueryClient();
   const { user, updateBalance } = useAuthStore();
 
   // ─── Game state ───────────────────────────────────────────────
-  const [phase,       setPhase]       = useState('waiting');
-  const [multiplier,  setMultiplier]  = useState(1.00);
-  const [crashPoint,  setCrashPoint]  = useState(null);
-  const [countdown,   setCountdown]   = useState(5);
-  const [connected,   setConnected]   = useState(false);
-  const [myBet,       setMyBet]       = useState(null);   // { betAmount, autoCashout }
-  const [cashedOut,   setCashedOut]   = useState(null);   // { multiplier, payout }
-  const [history,     setHistory]     = useState([]);     // last 10 crash points
-  const [message,     setMessage]     = useState('');
+  const [phase,      setPhase]      = useState('waiting');
+  const [multiplier, setMultiplier] = useState(1.00);
+  const [crashPoint, setCrashPoint] = useState(null);
+  const [countdown,  setCountdown]  = useState(5);
+  const [connected,  setConnected]  = useState(false);
+  const [myBet,      setMyBet]      = useState(null);   // { betAmount, autoCashout }
+  const [cashedOut,  setCashedOut]  = useState(null);   // { multiplier, payout }
+  const [history,    setHistory]    = useState([]);     // last 10 crash points
+  const [message,    setMessage]    = useState('');
 
-  // ref so socket handlers always see latest state without stale closures
+  // Update ref inline during render — no extra useEffect needed
+  // This means socket handlers always read the latest phase without stale closures
   const phaseRef = useRef(phase);
-  useEffect(() => { phaseRef.current = phase; }, [phase]);
+  phaseRef.current = phase;
 
   // ─── Socket connection ────────────────────────────────────────
   useEffect(() => {
-    // connect when component mounts
-    socket.connect();
-
-    socket.on('connect', () => {
+    const onConnect = () => {
       setConnected(true);
       setMessage('');
-    });
+      // Always resync on connect/reconnect so phase is never stale
+      socket.emit('crash:sync');
+    };
 
-    socket.on('disconnect', () => {
+    const onDisconnect = () => {
       setConnected(false);
       setMessage('Disconnected — reconnecting...');
-    });
+    };
 
-    // sync state when we first connect or reconnect
-    socket.on('crash:state', ({ phase, multiplier }) => {
-      setPhase(phase);
-      setMultiplier(multiplier);
-    });
+    // Sync state when we first connect or reconnect mid-round
+    const onState = ({ phase: p, multiplier: m }) => {
+      setPhase(p);
+      setMultiplier(m);
+    };
 
-    // new round starting — countdown begins
-    socket.on('crash:waiting', ({ countdown }) => {
+    // Server emits crash:waiting every second (5,4,3,2,1)
+    // Only reset bet/result state on the FIRST tick of a new round
+    const MAX_COUNTDOWN = 5;
+    const onWaiting = ({ countdown: cd }) => {
       setPhase('waiting');
-      setMultiplier(1.00);
-      setCrashPoint(null);
-      setMyBet(null);
-      setCashedOut(null);
-      setCountdown(countdown);
-      setMessage('Place your bets!');
-    });
+      setCountdown(cd);
+      if (cd === MAX_COUNTDOWN) {
+        setMultiplier(1.00);
+        setCrashPoint(null);
+        setMyBet(null);
+        setCashedOut(null);
+        setMessage('Place your bets!');
+      }
+    };
 
-    // round started — multiplier climbing
-    socket.on('crash:start', () => {
+    const onStart = () => {
       setPhase('running');
+      setCountdown(0);
       setMessage('');
-    });
+    };
 
-    // multiplier update every 100ms
-    socket.on('crash:tick', ({ multiplier }) => {
-      setMultiplier(multiplier);
-    });
+    const onTick = ({ multiplier: m }) => setMultiplier(m);
 
-    // game crashed
-    socket.on('crash:crashed', ({ crashPoint }) => {
+    const onCrashed = ({ crashPoint: cp }) => {
       setPhase('crashed');
-      setCrashPoint(crashPoint);
-      setMessage(`Crashed at ${crashPoint}x`);
-      // add to history
-      setHistory((prev) => [crashPoint, ...prev].slice(0, 10));
-    });
+      setCrashPoint(cp);
+      setMessage(`Crashed at ${cp}x`);
+      setHistory((prev) => [cp, ...prev].slice(0, 10));
+    };
 
-    // auto cashout triggered for this user
-    socket.on(`crash:autocashout:${user?.id}`, ({ multiplier, payout }) => {
-      setCashedOut({ multiplier, payout });
-      updateBalance(prev => prev + payout);
+    const onAutoCashout = ({ multiplier: m, payout }) => {
+      setCashedOut({ multiplier: m, payout });
       queryClient.invalidateQueries({ queryKey: ['balance', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['betHistory', user?.id] });
-    });
-
-    // cleanup on unmount
-    return () => {
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('crash:state');
-      socket.off('crash:waiting');
-      socket.off('crash:start');
-      socket.off('crash:tick');
-      socket.off('crash:crashed');
-      socket.off(`crash:autocashout:${user?.id}`);
-      socket.disconnect();
     };
-  }, [user?.id]);
+
+    socket.on('connect',                          onConnect);
+    socket.on('disconnect',                       onDisconnect);
+    socket.on('crash:state',                      onState);
+    socket.on('crash:waiting',                    onWaiting);
+    socket.on('crash:start',                      onStart);
+    socket.on('crash:tick',                       onTick);
+    socket.on('crash:crashed',                    onCrashed);
+    socket.on(`crash:autocashout:${user?.id}`,    onAutoCashout);
+
+    // Connect AFTER listeners are registered so we never miss crash:state
+    if (socket.connected) {
+      // StrictMode remount: socket already open, manually resync
+      onConnect();
+      socket.emit('crash:sync');   // ask server to re-send current state
+    } else {
+      socket.connect();
+    }
+
+    // Cleanup: only remove listeners — never disconnect the shared singleton
+    return () => {
+      socket.off('connect',                       onConnect);
+      socket.off('disconnect',                    onDisconnect);
+      socket.off('crash:state',                   onState);
+      socket.off('crash:waiting',                 onWaiting);
+      socket.off('crash:start',                   onStart);
+      socket.off('crash:tick',                    onTick);
+      socket.off('crash:crashed',                 onCrashed);
+      socket.off(`crash:autocashout:${user?.id}`, onAutoCashout);
+    };
+  }, [user?.id]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   // ─── Place bet ────────────────────────────────────────────────
   const {
     mutate:    placeBetMutate,
     isPending: placingBet,
   } = useMutation({
-    mutationFn: (data) => api.post('/games/crash/bet', data),
-
-    onSuccess: (_, variables) => {
+    mutationFn: (data) => api.post('/v2/games/crash/bet', data),
+    onSuccess: (res, variables) => {
+      const newBalance = res.data?.data?.balance;
       setMyBet(variables);
+      if (newBalance !== undefined) updateBalance(newBalance);
+      queryClient.invalidateQueries({ queryKey: ['balance', user?.id] });
       setMessage('Bet placed! Good luck.');
     },
     onError: (err) => {
@@ -118,15 +135,14 @@ export const useCrash = () => {
     mutate:    cashoutMutate,
     isPending: cashingOut,
   } = useMutation({
-    mutationFn: () => api.post('/games/crash/cashout'),
-
+    mutationFn: () => api.post('/v2/games/crash/cashout'),
     onSuccess: (res) => {
-      const { multiplier, payout, balance } = res.data.data;
-      setCashedOut({ multiplier, payout });
+      const { multiplier: m, payout, balance } = res.data.data;
+      setCashedOut({ multiplier: m, payout });
       updateBalance(balance);
       queryClient.invalidateQueries({ queryKey: ['balance', user?.id] });
       queryClient.invalidateQueries({ queryKey: ['betHistory', user?.id] });
-      setMessage(`Cashed out at ${multiplier}x — +${payout} coins!`);
+      setMessage(`Cashed out at ${m}x — +${payout} coins!`);
     },
     onError: (err) => {
       setMessage(err.response?.data?.message || 'Cashout failed');
@@ -134,14 +150,14 @@ export const useCrash = () => {
   });
 
   const placeBet = useCallback((data) => {
-    if (phase !== 'waiting') return;
+    if (phaseRef.current !== 'waiting') return;
     placeBetMutate(data);
-  }, [phase, placeBetMutate]);
+  }, [placeBetMutate]);  // phaseRef is a ref — no need in deps
 
   const cashout = useCallback(() => {
-    if (phase !== 'running' || cashedOut) return;
+    if (phaseRef.current !== 'running' || cashedOut) return;
     cashoutMutate();
-  }, [phase, cashedOut, cashoutMutate]);
+  }, [cashedOut, cashoutMutate]);  // phaseRef is a ref — no need in deps
 
   return {
     phase,

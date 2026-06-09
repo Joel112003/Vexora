@@ -95,3 +95,28 @@ export const addDemoCoins = async (req, res) => {
     res.status(500).json(apiResponse(false, error.message));
   }
 };
+
+export const getAllBets = async (req, res) => {
+  try {
+    const page     = parseInt(req.query.page)     || 1;
+    const limit    = parseInt(req.query.limit)    || 20;
+    const gameType = req.query.gameType;
+    const skip     = (page - 1) * limit;
+
+    const filter = { userId: req.user._id };
+    if (gameType) filter.gameType = gameType;
+
+    const [bets, total] = await Promise.all([
+      Bet.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      Bet.countDocuments(filter),
+    ]);
+
+    res.json(apiResponse(true, 'Bet history fetched', { bets, total, page }));
+  } catch (error) {
+    res.status(500).json(apiResponse(false, error.message));
+  }
+};

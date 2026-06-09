@@ -4,6 +4,7 @@ import {
 } from "../services/crash.service.js";
 import { placeBet } from "../services/game.service.js";
 import { apiResponse } from "../utilis/apiResponse.js";
+import { Game } from "../models/index.js";
 
 export let activeCrashBets = new Map();
 export let currentCrashPoints = generateCrashPoints();
@@ -38,7 +39,7 @@ export const placeCrashBet = async (req, res) => {
     if (gamePhase !== "waiting") {
       return res
         .status(400)
-        .json(apiResponse(false, "Round in progress , wait for next round"));
+        .json(apiResponse(false, "Round in progress, wait for next round"));
     }
 
     if (activeCrashBets.has(userId)) {
@@ -51,14 +52,24 @@ export const placeCrashBet = async (req, res) => {
       return res.status(400).json(apiResponse(false, "Insufficient balance"));
     }
 
-    //Store the bet
+    // Deduct balance immediately so the UI updates right away
+    const { User } = await import("../models/index.js");
+    const { invalidatedBalance } = await import("../cache/index.js");
+    const user = await User.findById(req.user._id);
+    const newBalance = parseFloat((user.balance - betAmount).toFixed(2));
+    user.balance = newBalance;
+    await user.save();
+    await invalidatedBalance(userId);
+
+    // Store the bet in memory
     activeCrashBets.set(userId, {
       userId: req.user._id,
       betAmount,
       autoCashout: autoCashout || null,
       cashedOut: false,
     });
-    res.json(apiResponse(true, "Bet placed!", { betAmount, autoCashout }));
+
+    res.json(apiResponse(true, "Bet placed!", { betAmount, autoCashout, balance: newBalance }));
   } catch (error) {
     res.status(400).json(apiResponse(false, error.message));
   }
@@ -77,7 +88,7 @@ export const cashoutCrash = async (req, res) => {
       return res.status(400).json(apiResponse(false, "Already cashed out!"));
     }
 
-    if (gamePhase !== "waiting") {
+    if (gamePhase !== "running") {
       return res.status(400).json(apiResponse(false, "Game not running"));
     }
 
@@ -86,16 +97,23 @@ export const cashoutCrash = async (req, res) => {
     const multiplier = formatMultiplier(currentMultiplier);
     const payout = parseFloat((bet.betAmount * multiplier).toFixed(2));
 
+    const game = await Game.findOne({ type: "crash" });
+    if (!game) {
+      return res.status(500).json(apiResponse(false, "Crash game config not found"));
+    }
+
     const { balance } = await placeBet({
-      userId: bet.user._id,
+      userId: bet.userId,
+      gameId: game._id,
       gameType: "crash",
       betAmount: bet.betAmount,
       multiplier,
       payout,
       outcome: "win",
+      preDeducted: true,   // balance already deducted at bet placement
       gameData: { crashPoints: currentCrashPoints, cashedOutAt: multiplier },
     });
-    res.json(apiResponse(true, "Cashed Out ", { multiplier, payout, balance }));
+    res.json(apiResponse(true, "Cashed Out", { multiplier, payout, balance }));
   } catch (error) {
     return res.status(400).json(apiResponse(false, error.message));
   }

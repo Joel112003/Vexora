@@ -9,8 +9,6 @@ const PORT = process.env.PORT || 5000;
 
 const httpServer = createServer(app);
 
-const io = initSocket(httpServer);
-
 const ensureGames = async () => {
   const defaults = [
     { name: "dice", type: "dice" },
@@ -30,6 +28,10 @@ const start = async () => {
   await connectDB();
   await ensureGames();
   await connectRedis();
+
+  // initSocket MUST be called after connectDB so Game.findOne works in runCrashLoop
+  initSocket(httpServer);
+
   httpServer.listen(PORT, () => {
     console.log("All games are ready");
     console.log(`Server is running on port : ${PORT}`);
@@ -39,3 +41,4 @@ const start = async () => {
 
 start();
 export { httpServer };
+

@@ -14,6 +14,7 @@ import {
   formatMultiplier,
 } from "../services/crash.service.js";
 import { placeBet } from "../services/game.service.js";
+import { Game } from "../models/index.js";
 
 export const initSocket = (httpServer) => {
   const io = new Server(httpServer, {
@@ -25,26 +26,40 @@ export const initSocket = (httpServer) => {
   });
 
   io.on("connection", (socket) => {
+    // Send current game state immediately on connection
     socket.emit("crash:state", {
       phase: gamePhase,
       multiplier: currentMultiplier,
+    });
+
+    // Client can request a resync (e.g. after StrictMode remount)
+    socket.on("crash:sync", () => {
+      socket.emit("crash:state", {
+        phase: gamePhase,
+        multiplier: currentMultiplier,
+      });
     });
 
     socket.on("disconnect", () => {});
   });
 
   const runCrashLoop = async () => {
+    // Look up the crash game document once — reused for every bet record
+    const crashGame = await Game.findOne({ type: "crash" });
+    if (!crashGame) throw new Error("Crash game not found in DB. Run your seed script.");
+    const crashGameId = crashGame._id;
+
     while (true) {
       setCurrentCrashPoint(generateCrashPoints());
       setGamePhase('waiting');
       setCurrentMultiplier(1.0);
 
-      io.emit("crash:waiting", {
-        message: "Place your bets",
-        countdown: 5,
-      });
-
-      await sleep(5000);
+      // Emit countdown ticks every second so the frontend updates in real-time
+      const WAIT_SECONDS = 5;
+      for (let t = WAIT_SECONDS; t > 0; t--) {
+        io.emit("crash:waiting", { countdown: t });
+        await sleep(1000);
+      }
 
       setGamePhase("running");
       setCurrentMultiplier(1.0);
@@ -62,7 +77,7 @@ export const initSocket = (httpServer) => {
               bet.autoCashout &&
               currentMultiplier >= bet.autoCashout
             ) {
-              bet.autoCashout = true;
+              bet.cashedOut = true;
               const multiplier = formatMultiplier(currentMultiplier);
               const payout = parseFloat(
                 (bet.betAmount * multiplier).toFixed(2),
@@ -70,6 +85,7 @@ export const initSocket = (httpServer) => {
               try {
                 await placeBet({
                   userId: bet.userId,
+                  gameId: crashGameId,
                   gameType: "crash",
                   betAmount: bet.betAmount,
                   multiplier,
@@ -99,15 +115,16 @@ export const initSocket = (httpServer) => {
 
       setGamePhase("crashed");
       io.emit("crash:crashed", {
-        crashPoints: currentCrashPoints,
+        crashPoint: currentCrashPoints,
         message: `Crashed at ${currentCrashPoints}x`,
       });
 
       for (const [userId, bet] of activeCrashBets.entries()) {
-        if (!bet.cashedout) {
+        if (!bet.cashedOut) {
           try {
             await placeBet({
               userId: bet.userId,
+              gameId: crashGameId,
               gameType: "crash",
               betAmount: bet.betAmount,
               multiplier: 0,

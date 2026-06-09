@@ -44,11 +44,20 @@ export const placeBet = async ({
   payout,
   outcome,
   gameData,
+  preDeducted = false,   // crash: balance already deducted at bet placement
 }) => {
   const user = await User.findById(userId);
   if (!user) throw new Error("User not found!");
 
-  user.balance = deductAndCredit(user.balance, betAmount, outcome, payout);
+  if (preDeducted) {
+    // Balance was already taken — only add payout on win
+    if (outcome === "win") {
+      user.balance = parseFloat((user.balance + payout).toFixed(2));
+    }
+  } else {
+    user.balance = deductAndCredit(user.balance, betAmount, outcome, payout);
+  }
+
   await user.save();
 
   const bet = await recordBet({
