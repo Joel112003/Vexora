@@ -5,6 +5,7 @@ import {
 import { placeBet } from "../services/game.service.js";
 import { apiResponse } from "../utilis/apiResponse.js";
 import { Game } from "../models/index.js";
+import { invalidatedBalance } from "../cache/index.js";
 
 export let activeCrashBets = new Map();
 export let currentCrashPoints = generateCrashPoints();
@@ -48,17 +49,18 @@ export const placeCrashBet = async (req, res) => {
         .json(apiResponse(false, "Already have a bet for this round"));
     }
 
-    if (req.user.balance < betAmount) {
+    // Compute new balance first — avoids floating-point issues with strict < comparison
+    // e.g. DB stores 16780.46 as 16780.459999... making (balance < betAmount) incorrectly true
+    const currentBalance = parseFloat(req.user.balance.toFixed(2));
+    const newBalance     = parseFloat((currentBalance - betAmount).toFixed(2));
+
+    if (newBalance < 0) {
       return res.status(400).json(apiResponse(false, "Insufficient balance"));
     }
 
-    // Deduct balance immediately so the UI updates right away
-    const { User } = await import("../models/index.js");
-    const { invalidatedBalance } = await import("../cache/index.js");
-    const user = await User.findById(req.user._id);
-    const newBalance = parseFloat((user.balance - betAmount).toFixed(2));
-    user.balance = newBalance;
-    await user.save();
+    // Deduct balance immediately — use req.user directly (already fetched fresh by protect)
+    req.user.balance = newBalance;
+    await req.user.save();
     await invalidatedBalance(userId);
 
     // Store the bet in memory

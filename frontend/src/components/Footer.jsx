@@ -3,8 +3,8 @@ import brandLogo from "../assets/vexora_brand.jpeg";
 
 function Footer() {
   return (
-    <footer className="border-t border-emerald-400/10 bg-gradient-to-b from-black via-black to-emerald-950/30">
-      <div className="mx-auto max-w-7xl px-6 py-14">
+    <footer className="border-t border-emerald-100/10 bg-gradient-to-b from-black via-black to-emerald-950/30 mt-20">
+      <div className="mx-auto max-w-10xl px-10 py-20">
         <div className="flex flex-col gap-10 md:flex-row md:items-center md:justify-between">
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -38,16 +38,6 @@ function Footer() {
                 {item}
               </a>
             ))}
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.6 }}
-            transition={{ duration: 0.7, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
-            className="font-mono text-[10px] uppercase tracking-[0.3em] text-zinc-500 md:text-right"
-          >
-            No deposit required
           </motion.div>
         </div>
 

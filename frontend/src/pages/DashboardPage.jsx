@@ -7,6 +7,7 @@ import coinImg  from '../assets/Coin.jpeg';
 import minesImg from '../assets/Mine.jpeg';
 import diceImg  from '../assets/Dice.jpeg';
 import crashImg from '../assets/Crash.jpeg';
+import Footer from "../components/Footer"
 
 const ease = [0.16, 1, 0.3, 1];
 const containerVariants = {
@@ -169,6 +170,8 @@ const DashboardPage = () => {
           ))}
         </div>
       </motion.div>
+
+      <Footer />
     </motion.div>
   );
 };
